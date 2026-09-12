@@ -1,15 +1,25 @@
 package com.dsw.seguimiento.util;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 public final class ConexionBD {
 
-        private static final Properties CONFIGURACION = cargarConfiguracion();
+    private static final Properties CONFIGURACION = cargarConfiguracion();
+
+    // Cargar explícitamente el driver JDBC de PostgreSQL para Tomcat
+    static {
+        try {
+            Class.forName("org.postgresql.Driver");
+        } catch (ClassNotFoundException e) {
+            System.err.println("Error: No se encontró el driver de PostgreSQL.");
+            e.printStackTrace();
+        }
+    }
 
     private ConexionBD() {
     }
