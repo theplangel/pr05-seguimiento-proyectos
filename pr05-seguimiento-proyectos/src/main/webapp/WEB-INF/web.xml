@@ -28,6 +28,12 @@
         <servlet-name>Faces Servlet</servlet-name>
         <servlet-class>javax.faces.webapp.FacesServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
+        <!-- Necesario para p:fileUpload (evidencias tipo captura/documento).
+             El limite de 5 MB por archivo se valida en TareaBean / AlmacenEvidencias. -->
+        <multipart-config>
+            <file-size-threshold>1048576</file-size-threshold>
+            <max-request-size>12582912</max-request-size>
+        </multipart-config>
     </servlet>
 
     <servlet-mapping>

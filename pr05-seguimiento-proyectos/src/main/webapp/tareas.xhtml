@@ -1,123 +1,312 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:f="http://xmlns.jcp.org/jsf/core"
-      xmlns:p="http://primefaces.org/ui">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/templates/plantilla.xhtml">
 
-<h:head>
-    <title>PR05 - Tareas (Web 2.0 - JSF/PrimeFaces)</title>
-</h:head>
+    <ui:param name="paginaActiva" value="tareas" />
+    <ui:param name="tituloPagina"
+              value="#{tareaBean.proyectoId gt 0 ? 'Tareas del proyecto ' += tareaBean.proyectoId : 'Tareas'}" />
 
-<h:body>
-    <f:metadata>
-        <f:viewParam name="proyectoId" value="#{tareaBean.proyectoId}" />
-        <f:viewAction action="#{tareaBean.inicializar}" />
-    </f:metadata>
+    <ui:define name="metadata">
+        <f:metadata>
+            <f:viewParam name="proyectoId" value="#{tareaBean.proyectoId}"
+                         converterMessage="El identificador de proyecto no es valido." />
+            <f:viewAction action="#{tareaBean.inicializar}" />
+        </f:metadata>
+    </ui:define>
 
-    <h:form id="formTareas">
+    <ui:define name="encabezado">
+        <p:breadCrumb styleClass="ruta">
+            <p:menuitem value="Inicio" url="#{request.contextPath}/" />
+            <p:menuitem value="Proyectos" outcome="proyectos" />
+            <p:menuitem value="Tareas del proyecto #{tareaBean.proyectoId}" outcome="tareas"
+                        rendered="#{tareaBean.proyectoId gt 0}">
+                <f:param name="proyectoId" value="#{tareaBean.proyectoId}" />
+            </p:menuitem>
+        </p:breadCrumb>
+        <div class="page-header-fila">
+            <div>
+                <h1>#{tareaBean.proyectoId gt 0 ? 'Tareas del proyecto ' += tareaBean.proyectoId : 'Tareas'}</h1>
+                <p class="page-subtitle">
+                    Asigna tareas, cambia su estado y registra impedimentos o evidencias.
+                    Una tarea no puede completarse si tiene impedimentos abiertos.
+                </p>
+            </div>
+            <p:linkButton outcome="proyectos" value="Volver a proyectos" icon="pi pi-arrow-left"
+                          styleClass="ui-button-secondary ui-button-outlined" />
+        </div>
+    </ui:define>
 
-        <h:link outcome="proyectos" value="&#8592; Volver a proyectos" style="display:block;margin-bottom:10px;" />
+    <ui:define name="contenido">
+        <p:growl id="mensajes" showDetail="true" globalOnly="true" life="5000" />
 
-        <p:growl id="mensajes" showDetail="true" />
+        <!-- ===== Caso negativo: se entro sin ?proyectoId=N ===== -->
+        <h:panelGroup layout="block" styleClass="card" rendered="#{tareaBean.proyectoId le 0}">
+            <div class="empty-state">
+                <h3>No se indico un proyecto</h3>
+                <p>Para ver tareas primero elige un proyecto del listado.</p>
+                <p:linkButton outcome="proyectos" value="Ir a proyectos" icon="pi pi-list"
+                              styleClass="boton-espaciado" />
+            </div>
+        </h:panelGroup>
 
-        <p:panel header="Nueva tarea (proyecto ##{tareaBean.proyectoId})">
-            <h:panelGrid columns="2" cellpadding="5">
+        <h:panelGroup layout="block" styleClass="grid-2" rendered="#{tareaBean.proyectoId gt 0}">
 
-                <p:outputLabel for="titulo" value="Titulo *" />
-                <p:inputText id="titulo" value="#{tareaBean.titulo}" required="true"
-                             requiredMessage="El titulo es obligatorio." />
+            <!-- ===== Tablero de tareas ===== -->
+            <h:form id="formTabla">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Tareas del proyecto</h2>
+                        <span class="contador">#{tareaBean.tareas.size()} en total</span>
+                    </div>
+                    <p:dataTable id="tablaTareas" var="t" value="#{tareaBean.tareas}"
+                                 styleClass="tabla-web2" stripedRows="true" rowHover="true"
+                                 paginator="true" rows="8" paginatorAlwaysVisible="false"
+                                 paginatorPosition="bottom"
+                                 emptyMessage="Este proyecto aun no tiene tareas. Crea la primera con el formulario.">
 
-                <p:outputLabel for="responsable" value="Responsable *" />
-                <p:selectOneMenu id="responsable" value="#{tareaBean.responsableId}" required="true">
-                    <f:selectItem itemLabel="-- selecciona --" itemValue="#{null}" />
-                    <f:selectItems value="#{tareaBean.integrantes}" var="i"
-                                   itemLabel="#{i.nombre} (#{i.rolEquipo})" itemValue="#{i.id}" />
-                </p:selectOneMenu>
-
-                <p:outputLabel for="fechaLimite" value="Fecha limite" />
-                <p:calendar id="fechaLimite" value="#{tareaBean.fechaLimite}" pattern="yyyy-MM-dd" />
-
-            </h:panelGrid>
-
-            <p:commandButton value="Crear tarea" action="#{tareaBean.crearTarea}"
-                              update="formTareas" process="@form" />
-        </p:panel>
-
-        <p:separator />
-
-        <p:panel header="Tareas del proyecto">
-            <p:dataTable id="tablaTareas" var="t" value="#{tareaBean.tareas}"
-                         emptyMessage="No hay tareas registradas todavia.">
-
-                <p:column headerText="ID">
-                    <h:outputText value="#{t.id}" />
-                </p:column>
-
-                <p:column headerText="Titulo">
-                    <h:outputText value="#{t.titulo}" />
-                </p:column>
-
-                <p:column headerText="Estado actual">
-                    <p:tag value="#{t.estado}" />
-                </p:column>
-
-                <p:column headerText="Cambiar a">
-                    <p:selectOneMenu value="#{t.estado}">
-                        <f:selectItems value="#{tareaBean.estadosDisponibles}" />
-                        <p:ajax listener="#{tareaBean.cambiarEstado(t, t.estado)}"
-                                update=":formTareas:tablaTareas :formTareas:mensajes" />
-                    </p:selectOneMenu>
-                </p:column>
-
-                <p:column headerText="Detalle">
-                    <p:commandButton value="Ver" icon="pi pi-eye"
-                                      actionListener="#{tareaBean.seleccionarTarea(t)}"
-                                      update=":formTareas:panelDetalle"
-                                      oncomplete="PF('dlgDetalle').show()" />
-                </p:column>
-
-            </p:dataTable>
-        </p:panel>
-
-        <p:dialog header="Detalle de tarea" widgetVar="dlgDetalle" modal="true" width="500">
-            <h:panelGroup id="panelDetalle">
-                <h:panelGroup rendered="#{tareaBean.tareaSeleccionada != null}">
-
-                    <h3>Impedimentos</h3>
-                    <p:dataTable var="imp" value="#{tareaBean.impedimentosDeTarea}"
-                                 emptyMessage="Sin impedimentos registrados.">
-                        <p:column headerText="Descripcion">
-                            <h:outputText value="#{imp.descripcion}" />
+                        <p:column headerText="ID" sortBy="#{t.id}" styleClass="col-id">
+                            <h:outputText value="#{t.id}" />
                         </p:column>
-                        <p:column headerText="Estado">
-                            <p:tag value="#{imp.estado}" />
+
+                        <p:column headerText="Titulo" sortBy="#{t.titulo}">
+                            <h:outputText value="#{t.titulo}" styleClass="texto-principal" />
                         </p:column>
-                        <p:column headerText="Accion">
-                            <p:commandButton value="Resolver" rendered="#{imp.estado == 'ABIERTO'}"
-                                              actionListener="#{tareaBean.resolverImpedimento(imp)}"
-                                              update=":formTareas:panelDetalle :formTareas:mensajes" />
+
+                        <p:column headerText="Fecha limite" sortBy="#{t.fechaLimite}" styleClass="col-fecha">
+                            <h:outputText value="#{t.fechaLimite}" rendered="#{not empty t.fechaLimite}">
+                                <f:convertDateTime pattern="yyyy-MM-dd" />
+                            </h:outputText>
+                            <h:outputText value="Sin fecha" styleClass="texto-secundario"
+                                          rendered="#{empty t.fechaLimite}" />
                         </p:column>
+
+                        <p:column headerText="Estado" sortBy="#{t.estado}" styleClass="col-estado">
+                            <p:tag value="#{t.estado.replace('_', ' ')}" styleClass="estado estado-#{t.estado}" />
+                        </p:column>
+
+                        <p:column headerText="Cambiar a" styleClass="col-cambio">
+                            <p:selectOneMenu value="#{t.estado}" title="Cambiar estado de la tarea #{t.id}"
+                                             styleClass="selector-estado">
+                                <f:selectItems value="#{tareaBean.estadosDisponibles}" var="e"
+                                               itemLabel="#{e.replace('_', ' ')}" itemValue="#{e}" />
+                                <p:ajax process="@this" listener="#{tareaBean.cambiarEstado(t, t.estado)}"
+                                        update=":formTabla:tablaTareas :mensajes" />
+                            </p:selectOneMenu>
+                        </p:column>
+
+                        <p:column headerText="Detalle" styleClass="col-acciones">
+                            <p:commandButton value="Ver" icon="pi pi-search"
+                                             styleClass="ui-button-outlined boton-chico"
+                                             title="Ver impedimentos y evidencias de la tarea #{t.id}"
+                                             process="@this"
+                                             actionListener="#{tareaBean.seleccionarTarea(t)}"
+                                             update=":formDetalle:panelDetalle"
+                                             oncomplete="PF('dlgDetalle').show()" />
+                        </p:column>
+
                     </p:dataTable>
+                </div>
+            </h:form>
 
-                    <p:outputLabel for="descImpedimento" value="Nuevo impedimento" />
-                    <p:inputText id="descImpedimento" value="#{tareaBean.descripcionImpedimento}" style="width:100%" />
-                    <p:commandButton value="Registrar impedimento" action="#{tareaBean.crearImpedimento}"
-                                      update=":formTareas:panelDetalle :formTareas:mensajes" />
+            <!-- ===== Alta de tarea ===== -->
+            <h:form id="formTareas">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Nueva tarea</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="form-hint campos-obligatorios">Los campos marcados con * son obligatorios.</p>
 
-                    <p:separator />
+                        <div class="campo">
+                            <p:outputLabel for="titulo" value="Titulo" indicateRequired="true" />
+                            <p:inputText id="titulo" value="#{tareaBean.titulo}" required="true"
+                                         maxlength="150" placeholder="Ej. Disenar formulario de registro"
+                                         requiredMessage="Escribe el titulo de la tarea." />
+                            <p:message for="titulo" display="text" />
+                        </div>
 
-                    <h3>Registrar evidencia</h3>
-                    <p:outputLabel for="tipoEv" value="Tipo" />
-                    <p:inputText id="tipoEv" value="#{tareaBean.tipoEvidencia}" />
-                    <p:outputLabel for="urlEv" value="URL / ruta" />
-                    <p:inputText id="urlEv" value="#{tareaBean.urlEvidencia}" style="width:100%" />
-                    <p:commandButton value="Registrar evidencia" action="#{tareaBean.registrarEvidencia}"
-                                      update=":formTareas:mensajes" />
+                        <div class="campo">
+                            <p:outputLabel for="responsable" value="Responsable" indicateRequired="true" />
+                            <p:selectOneMenu id="responsable" value="#{tareaBean.responsableId}" required="true"
+                                             requiredMessage="Selecciona a la persona responsable.">
+                                <f:selectItem itemLabel="Selecciona un integrante" itemValue="#{null}"
+                                              noSelectionOption="true" />
+                                <f:selectItems value="#{tareaBean.integrantes}" var="i"
+                                               itemLabel="#{i.nombre} (#{i.rolEquipo})" itemValue="#{i.id}" />
+                            </p:selectOneMenu>
+                            <p:message for="responsable" display="text" />
+                            <h:outputText value="Este proyecto no tiene integrantes registrados."
+                                          styleClass="form-hint"
+                                          rendered="#{empty tareaBean.integrantes}" />
+                        </div>
 
+                        <div class="campo">
+                            <p:outputLabel for="fechaLimite" value="Fecha limite" />
+                            <p:datePicker id="fechaLimite" value="#{tareaBean.fechaLimite}"
+                                          pattern="yyyy-MM-dd" showIcon="true" placeholder="aaaa-mm-dd"
+                                          converterMessage="La fecha debe tener el formato aaaa-mm-dd." />
+                            <p:message for="fechaLimite" display="text" />
+                        </div>
+
+                        <div class="acciones-form">
+                            <p:commandButton value="Crear tarea" icon="pi pi-check"
+                                             action="#{tareaBean.crearTarea}"
+                                             process="@form"
+                                             update="@form :formTabla :mensajes" />
+                            <p:commandButton value="Limpiar" icon="pi pi-times" type="reset"
+                                             styleClass="ui-button-secondary ui-button-outlined" />
+                        </div>
+                    </div>
+                </div>
+            </h:form>
+
+        </h:panelGroup>
+
+        <!-- ===== Dialogo de detalle (formulario propio para no validar el alta de tarea) ===== -->
+        <h:form id="formDetalle" enctype="multipart/form-data">
+            <p:dialog header="Detalle de tarea" widgetVar="dlgDetalle" modal="true" width="560"
+                      responsive="true" closeOnEscape="true" draggable="false" resizable="false"
+                      styleClass="dialogo-detalle">
+                <h:panelGroup id="panelDetalle" layout="block">
+                    <h:panelGroup layout="block" rendered="#{tareaBean.tareaSeleccionada != null}">
+
+                        <div class="detalle-encabezado">
+                            <span class="texto-secundario">Tarea #{tareaBean.tareaSeleccionada.id}</span>
+                            <h3>#{tareaBean.tareaSeleccionada.titulo}</h3>
+                            <p:tag value="#{tareaBean.tareaSeleccionada.estado.replace('_', ' ')}"
+                                   styleClass="estado estado-#{tareaBean.tareaSeleccionada.estado}" />
+                        </div>
+
+                        <section class="sub-panel">
+                            <h4>Impedimentos</h4>
+                            <p:dataTable var="imp" value="#{tareaBean.impedimentosDeTarea}"
+                                         styleClass="tabla-web2 tabla-compacta"
+                                         emptyMessage="Sin impedimentos registrados.">
+                                <p:column headerText="Descripcion">
+                                    <h:outputText value="#{imp.descripcion}" />
+                                </p:column>
+                                <p:column headerText="Estado" styleClass="col-estado">
+                                    <p:tag value="#{imp.estado}" styleClass="estado estado-#{imp.estado}" />
+                                </p:column>
+                                <p:column headerText="Accion" styleClass="col-acciones">
+                                    <p:commandButton value="Resolver" icon="pi pi-check"
+                                                     rendered="#{imp.estado == 'ABIERTO'}"
+                                                     styleClass="ui-button-success ui-button-outlined boton-chico"
+                                                     process="@this"
+                                                     actionListener="#{tareaBean.resolverImpedimento(imp)}"
+                                                     update=":formDetalle:panelDetalle :mensajes" />
+                                </p:column>
+                            </p:dataTable>
+
+                            <div class="campo campo-en-linea">
+                                <p:outputLabel for="descImpedimento" value="Nuevo impedimento" indicateRequired="true" />
+                                <div class="fila-en-linea">
+                                    <p:inputText id="descImpedimento" value="#{tareaBean.descripcionImpedimento}"
+                                                 required="true" maxlength="300"
+                                                 placeholder="Describe que esta bloqueando la tarea"
+                                                 requiredMessage="Describe el impedimento antes de registrarlo." />
+                                    <p:commandButton value="Registrar" icon="pi pi-plus"
+                                                     styleClass="ui-button-warning"
+                                                     process="@this descImpedimento"
+                                                     action="#{tareaBean.crearImpedimento}"
+                                                     update=":formDetalle:panelDetalle :mensajes" />
+                                </div>
+                                <p:message for="descImpedimento" display="text" />
+                            </div>
+                        </section>
+
+                        <section class="sub-panel">
+                            <h4>Evidencias (#{tareaBean.evidenciasDeTarea.size()})</h4>
+                            <p:dataTable var="ev" value="#{tareaBean.evidenciasDeTarea}"
+                                         styleClass="tabla-web2 tabla-compacta"
+                                         emptyMessage="Sin evidencias adjuntas.">
+                                <p:column headerText="Tipo" styleClass="col-estado">
+                                    <p:tag value="#{ev.tipo}" styleClass="estado estado-ACTIVO" />
+                                </p:column>
+                                <p:column headerText="Recurso">
+                                    <!-- Solo se enlazan archivos subidos o URLs http(s); lo demas se muestra como texto -->
+                                    <h:panelGroup rendered="#{tareaBean.esImagenSubida(ev)}">
+                                        <a href="#{ev.urlORuta}" target="_blank" rel="noopener noreferrer" class="enlace-evidencia">
+                                            <img src="#{ev.urlORuta}" alt="Captura adjunta a la tarea" class="miniatura-evidencia" />
+                                            Ver captura
+                                        </a>
+                                    </h:panelGroup>
+                                    <h:panelGroup rendered="#{tareaBean.esArchivoSubido(ev) and not tareaBean.esImagenSubida(ev)}">
+                                        <a href="#{ev.urlORuta}" target="_blank" rel="noopener noreferrer" class="enlace-evidencia">
+                                            <i class="pi pi-file" aria-hidden="true"></i> Abrir documento
+                                        </a>
+                                    </h:panelGroup>
+                                    <h:panelGroup rendered="#{not tareaBean.esArchivoSubido(ev) and (ev.urlORuta.startsWith('http://') or ev.urlORuta.startsWith('https://'))}">
+                                        <a href="#{ev.urlORuta}" target="_blank" rel="noopener noreferrer" class="enlace-evidencia">#{ev.urlORuta}</a>
+                                    </h:panelGroup>
+                                    <h:outputText value="#{ev.urlORuta}" styleClass="texto-secundario"
+                                                  rendered="#{not tareaBean.esArchivoSubido(ev) and not ev.urlORuta.startsWith('http://') and not ev.urlORuta.startsWith('https://')}" />
+                                </p:column>
+                                <p:column headerText="Fecha" styleClass="col-fecha">
+                                    <h:outputText value="#{ev.fecha}">
+                                        <f:convertDateTime pattern="yyyy-MM-dd" />
+                                    </h:outputText>
+                                </p:column>
+                            </p:dataTable>
+
+                            <div class="campo campo-en-linea">
+                                <p:outputLabel for="tipoEv" value="Tipo de evidencia" />
+                                <p:selectOneMenu id="tipoEv" value="#{tareaBean.tipoEvidencia}">
+                                    <f:selectItem itemLabel="Enlace" itemValue="enlace" />
+                                    <f:selectItem itemLabel="Captura (imagen)" itemValue="captura" />
+                                    <f:selectItem itemLabel="Documento" itemValue="documento" />
+                                    <f:selectItem itemLabel="Codigo" itemValue="codigo" />
+                                    <!-- Al cambiar el tipo se muestra el campo de texto o el selector de archivo -->
+                                    <p:ajax process="@this" update="zonaEvidencia" />
+                                </p:selectOneMenu>
+                            </div>
+
+                            <h:panelGroup id="zonaEvidencia" layout="block">
+                                <!-- Enlace / codigo: URL o ruta en texto -->
+                                <h:panelGroup layout="block" styleClass="campo" rendered="#{not tareaBean.evidenciaConArchivo}">
+                                    <p:outputLabel for="urlEv" value="URL o ruta" indicateRequired="true" />
+                                    <div class="fila-en-linea">
+                                        <p:inputText id="urlEv" value="#{tareaBean.urlEvidencia}" required="true"
+                                                     maxlength="300"
+                                                     placeholder="#{tareaBean.tipoEvidencia eq 'codigo' ? 'Ej. src/main/java/... o enlace al repositorio' : 'Ej. https://...'}"
+                                                     requiredMessage="Indica la URL o ruta de la evidencia." />
+                                        <p:commandButton value="Registrar" icon="pi pi-paperclip"
+                                                         process="@this urlEv"
+                                                         action="#{tareaBean.registrarEvidencia}"
+                                                         update=":formDetalle:panelDetalle :mensajes" />
+                                    </div>
+                                    <p:message for="urlEv" display="text" />
+                                </h:panelGroup>
+
+                                <!-- Captura / documento: se sube el archivo y se registra en cuanto termina -->
+                                <h:panelGroup layout="block" styleClass="campo" rendered="#{tareaBean.evidenciaConArchivo}">
+                                    <p:outputLabel for="archivoEv"
+                                                   value="#{tareaBean.tipoEvidencia eq 'captura' ? 'Imagen de la captura' : 'Archivo del documento'}" />
+                                    <p:fileUpload id="archivoEv" mode="advanced" auto="true" multiple="false"
+                                                  listener="#{tareaBean.subirArchivoEvidencia}"
+                                                  label="#{tareaBean.tipoEvidencia eq 'captura' ? 'Elegir imagen' : 'Elegir documento'}"
+                                                  chooseIcon="pi pi-upload"
+                                                  allowTypes="#{tareaBean.patronExtensiones}"
+                                                  accept="#{tareaBean.extensionesPermitidas.replace(' ', '')}"
+                                                  sizeLimit="5242880"
+                                                  invalidFileMessage="Tipo de archivo no permitido. Usa #{tareaBean.extensionesPermitidas}."
+                                                  invalidSizeMessage="El archivo no debe superar 5 MB."
+                                                  update=":formDetalle:panelDetalle :mensajes"
+                                                  styleClass="subida-evidencia" />
+                                    <h:outputText styleClass="form-hint"
+                                                  value="Formatos: #{tareaBean.extensionesPermitidas}. Tamano maximo: 5 MB. Se registra al terminar de subir." />
+                                </h:panelGroup>
+                            </h:panelGroup>
+                        </section>
+
+                    </h:panelGroup>
                 </h:panelGroup>
-            </h:panelGroup>
-        </p:dialog>
+            </p:dialog>
+        </h:form>
+    </ui:define>
 
-    </h:form>
-</h:body>
-</html>
+</ui:composition>
