@@ -37,6 +37,27 @@
       <version>3.1.0</version>
       <scope>provided</scope>
     </dependency>
+
+    <!-- JSF (Mojarra) - version 2.3.x, compatible con javax.servlet 3.1 / Tomcat 9 -->
+    <dependency>
+      <groupId>org.glassfish</groupId>
+      <artifactId>javax.faces</artifactId>
+      <version>2.3.9</version>
+    </dependency>
+
+    <!-- PrimeFaces 11.0.x - ultima version con namespace javax (no Jakarta) -->
+    <dependency>
+      <groupId>org.primefaces</groupId>
+      <artifactId>primefaces</artifactId>
+      <version>11.0.0</version>
+    </dependency>
+
+    <!-- CDI requerido por JSF 2.3 en Tomcat (javax, no Jakarta) -->
+    <dependency>
+      <groupId>org.jboss.weld.servlet</groupId>
+      <artifactId>weld-servlet-core</artifactId>
+      <version>3.1.9.Final</version>
+    </dependency>
   </dependencies>
 
   <build>
