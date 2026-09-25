@@ -1,0 +1,480 @@
+/* ==========================================================================
+   PR05 - Seguimiento de Proyectos
+   Ajustes visuales para las vistas Web 2.0 (JSF + PrimeFaces 11, tema saga).
+   Reutiliza las variables de estilos.css (Web 1.0) para que ambas versiones
+   compartan paleta, tipografia y espaciado.
+   ========================================================================== */
+
+/* ---------- Base ---------- */
+body.web2 {
+    font-size: 15px;
+}
+
+body.web2 .ui-widget,
+body.web2 .ui-widget .ui-widget,
+body.web2 .ui-widget input,
+body.web2 .ui-widget select,
+body.web2 .ui-widget textarea,
+body.web2 .ui-widget button {
+    font-family: inherit;
+    font-size: 0.92rem;
+}
+
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0.5rem;
+    background: var(--primary);
+    color: #ffffff;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    z-index: 200;
+}
+
+.skip-link:focus {
+    left: 1rem;
+}
+
+body.web2 a:focus-visible,
+body.web2 .ui-button:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* ---------- Encabezado de pagina ---------- */
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+.page-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    color: var(--text-primary);
+    margin: 0.5rem 0 0.25rem 0;
+}
+
+.page-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    max-width: 720px;
+}
+
+.page-header-fila {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Ruta de navegacion (p:breadCrumb) */
+body.web2 .ruta.ui-breadcrumb {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+body.web2 .ruta.ui-breadcrumb ul li .ui-menuitem-link .ui-menuitem-text {
+    color: var(--primary);
+    font-size: 0.85rem;
+}
+
+body.web2 .ruta.ui-breadcrumb ul li:last-child .ui-menuitem-link .ui-menuitem-text {
+    color: var(--text-muted);
+}
+
+body.web2 .ruta.ui-breadcrumb ul li .ui-menuitem-link:hover .ui-menuitem-text {
+    text-decoration: underline;
+}
+
+/* ---------- Tarjetas y rejilla ---------- */
+body.web2 .grid-2 {
+    align-items: start;
+}
+
+.contador {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: var(--border-light);
+    border: 1px solid var(--border);
+    border-radius: 9999px;
+    padding: 0.15rem 0.6rem;
+}
+
+/* ---------- Formularios ---------- */
+.campos-obligatorios {
+    margin-bottom: 1rem;
+}
+
+.campo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-bottom: 1.1rem;
+}
+
+.campo > label,
+.campo .ui-outputlabel {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--text-primary);
+}
+
+body.web2 .ui-outputlabel .ui-outputlabel-rfi {
+    color: #dc2626;
+    margin-left: 0.2rem;
+}
+
+.campo .ui-inputfield,
+.campo .ui-inputtextarea,
+.campo .ui-selectonemenu,
+.campo .ui-datepicker,
+.campo .ui-datepicker input {
+    width: 100%;
+}
+
+.campo .ui-datepicker {
+    display: flex;
+}
+
+body.web2 .ui-inputfield,
+body.web2 .ui-selectonemenu {
+    border-color: #cbd5e1;
+    border-radius: var(--radius-md);
+}
+
+body.web2 .ui-inputfield:enabled:focus,
+body.web2 .ui-selectonemenu.ui-state-focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Campo invalido: borde rojo y mensaje debajo */
+body.web2 .ui-inputfield.ui-state-error,
+body.web2 .ui-selectonemenu.ui-state-error {
+    border-color: #dc2626;
+}
+
+body.web2 .ui-message {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    border: none;
+}
+
+body.web2 .ui-message.ui-message-error .ui-message-error-detail,
+body.web2 .ui-message.ui-message-error .ui-message-error-summary,
+body.web2 .ui-message-error {
+    color: var(--danger-text);
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.acciones-form {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-light);
+}
+
+.fila-en-linea {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.fila-en-linea .ui-inputfield {
+    flex: 1;
+}
+
+.campo-en-linea {
+    margin-top: 0.9rem;
+    margin-bottom: 0;
+}
+
+/* ---------- Botones ---------- */
+body.web2 .ui-button {
+    border-radius: var(--radius-md);
+    font-weight: 600;
+}
+
+body.web2 .ui-button:not(.ui-button-secondary):not(.ui-button-success):not(.ui-button-warning):not(.ui-button-outlined) {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+}
+
+body.web2 .ui-button:not(.ui-button-secondary):not(.ui-button-success):not(.ui-button-warning):not(.ui-button-outlined):enabled:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+body.web2 .ui-button.ui-button-outlined:not(.ui-button-secondary):not(.ui-button-success) {
+    background: #ffffff;
+    color: var(--primary);
+    border-color: #bfdbfe;
+}
+
+body.web2 .ui-button.ui-button-outlined:not(.ui-button-secondary):not(.ui-button-success):hover {
+    background: var(--info-bg);
+}
+
+body.web2 .ui-button.ui-button-secondary.ui-button-outlined {
+    background: #ffffff;
+    color: var(--text-secondary);
+    border-color: #cbd5e1;
+}
+
+body.web2 .ui-button.ui-button-secondary.ui-button-outlined:hover {
+    background: var(--border-light);
+}
+
+body.web2 .ui-button.boton-chico .ui-button-text {
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    font-size: 0.8rem;
+}
+
+body.web2 a.ui-button {
+    text-decoration: none;
+}
+
+.boton-espaciado {
+    margin-top: 1rem;
+}
+
+/* ---------- Tablas (p:dataTable) ---------- */
+body.web2 .tabla-web2.ui-datatable {
+    border: none;
+}
+
+body.web2 .tabla-web2.ui-datatable .ui-datatable-thead > tr > th {
+    background: #f8fafc;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-width: 0 0 1px 0;
+    border-color: var(--border);
+    padding: 0.75rem 1rem;
+}
+
+body.web2 .tabla-web2.ui-datatable .ui-datatable-data > tr > td {
+    border-width: 0 0 1px 0;
+    border-color: var(--border-light);
+    padding: 0.75rem 1rem;
+    vertical-align: middle;
+}
+
+body.web2 .tabla-web2.ui-datatable .ui-datatable-data > tr.ui-datatable-odd {
+    background: #fcfdfe;
+}
+
+body.web2 .tabla-web2.ui-datatable .ui-datatable-data > tr:hover {
+    background: var(--info-bg);
+}
+
+body.web2 .tabla-web2 .ui-datatable-empty-message td {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem 1rem;
+}
+
+body.web2 .tabla-web2 .ui-paginator {
+    border-width: 1px 0 0 0;
+    border-color: var(--border);
+    background: #ffffff;
+}
+
+body.web2 .tabla-compacta.ui-datatable .ui-datatable-thead > tr > th,
+body.web2 .tabla-compacta.ui-datatable .ui-datatable-data > tr > td {
+    padding: 0.5rem 0.65rem;
+}
+
+.col-id {
+    width: 4rem;
+    color: var(--text-muted);
+}
+
+.col-fecha {
+    width: 8rem;
+    white-space: nowrap;
+}
+
+.col-estado {
+    width: 8.5rem;
+}
+
+.col-cambio {
+    width: 11rem;
+}
+
+.col-acciones {
+    width: 9rem;
+    text-align: right;
+}
+
+.texto-principal {
+    display: block;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.texto-secundario {
+    display: block;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.selector-estado.ui-selectonemenu {
+    width: 100%;
+    min-width: 0;
+}
+
+/* ---------- Etiquetas de estado (p:tag) ---------- */
+/* Misma paleta que las .badge de estilos.css para mantener consistencia con Web 1.0 */
+body.web2 .ui-tag.estado {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    padding: 0.2rem 0.55rem;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    white-space: nowrap;
+}
+
+body.web2 .ui-tag.estado-ACTIVO,
+body.web2 .ui-tag.estado-COMPLETADA,
+body.web2 .ui-tag.estado-RESUELTO {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+body.web2 .ui-tag.estado-PAUSADO {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+body.web2 .ui-tag.estado-CERRADO,
+body.web2 .ui-tag.estado-PENDIENTE {
+    background: #f1f5f9;
+    color: #334155;
+    border-color: #cbd5e1;
+}
+
+body.web2 .ui-tag.estado-EN_PROGRESO {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+body.web2 .ui-tag.estado-BLOQUEADA,
+body.web2 .ui-tag.estado-ABIERTO {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+/* ---------- Dialogo de detalle ---------- */
+body.web2 .dialogo-detalle.ui-dialog {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+body.web2 .dialogo-detalle .ui-dialog-titlebar {
+    background: var(--navy-nav);
+    color: #ffffff;
+}
+
+body.web2 .dialogo-detalle .ui-dialog-titlebar .ui-dialog-titlebar-icon {
+    color: #cbd5e1;
+}
+
+.detalle-encabezado {
+    margin-bottom: 0.75rem;
+}
+
+.detalle-encabezado h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0.1rem 0 0.4rem 0;
+}
+
+body.web2 .sub-panel {
+    margin-top: 0.9rem;
+    padding: 0.9rem 1rem;
+}
+
+/* ---------- Evidencias (lista y subida de archivos) ---------- */
+.enlace-evidencia {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary);
+    text-decoration: underline;
+    word-break: break-all;
+}
+
+.miniatura-evidencia {
+    width: 56px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+body.web2 .subida-evidencia.ui-fileupload .ui-fileupload-buttonbar {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+body.web2 .subida-evidencia.ui-fileupload .ui-fileupload-content {
+    border: 1px dashed #cbd5e1;
+    border-radius: var(--radius-md);
+    background: #ffffff;
+    margin-top: 0.4rem;
+    padding: 0.5rem;
+}
+
+body.web2 .subida-evidencia .ui-messages-error {
+    color: var(--danger-text);
+    background: var(--danger-bg);
+    border: 1px solid var(--danger-border);
+    border-radius: var(--radius-sm);
+}
+
+/* ---------- Estado vacio ---------- */
+body.web2 .empty-state p {
+    margin-top: 0.25rem;
+}
+
+/* ---------- Mensajes flotantes (p:growl) ---------- */
+body.web2 .ui-growl {
+    top: 72px;
+}
+
+body.web2 .ui-growl-item-container {
+    border-radius: var(--radius-md);
+}
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 880px) {
+    .page-header h1 {
+        font-size: 1.4rem;
+    }
+
+    .col-cambio {
+        width: auto;
+    }
+
+    .fila-en-linea {
+        flex-direction: column;
+    }
+}

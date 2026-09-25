@@ -5,6 +5,7 @@
 <%@ page import="java.util.HashMap" %>
 <%@ page import="com.dsw.seguimiento.model.*" %>
 <%@ page import="com.dsw.seguimiento.dao.*" %>
+<%@ page import="com.dsw.seguimiento.util.AlmacenEvidencias" %>
 <%
     Integer proyectoId = (Integer) request.getAttribute("proyectoId");
     String errorServlet = (String) request.getAttribute("error");
@@ -101,6 +102,31 @@
                 <div>
                     <div class="alert-title">Datos de evidencia requeridos:</div>
                     Debe seleccionar el tipo y escribir el enlace o ruta de la evidencia.
+                </div>
+            </div>
+        <% } else if ("archivoFaltante".equals(resultadoParam)) { %>
+            <div class="alert alert-warning" role="alert">
+                <div>
+                    <div class="alert-title">Falta el archivo:</div>
+                    Para una captura o un documento debe seleccionar el archivo que desea adjuntar.
+                </div>
+            </div>
+        <% } else if ("archivoInvalido".equals(resultadoParam)) { %>
+            <div class="alert alert-danger" role="alert">
+                <div>
+                    <div class="alert-title">Tipo de archivo no permitido:</div>
+                    <% if ("documento".equals(request.getParameter("tipo"))) { %>
+                        Un documento debe ser <%= AlmacenEvidencias.extensionesPermitidas("documento") %>.
+                    <% } else { %>
+                        Una captura debe ser una imagen <%= AlmacenEvidencias.extensionesPermitidas("captura") %>.
+                    <% } %>
+                </div>
+            </div>
+        <% } else if ("archivoGrande".equals(resultadoParam)) { %>
+            <div class="alert alert-danger" role="alert">
+                <div>
+                    <div class="alert-title">Archivo demasiado grande:</div>
+                    El archivo no debe superar 5 MB.
                 </div>
             </div>
         <% } else if ("error".equals(resultadoParam)) { %>
@@ -301,10 +327,22 @@
                                                 <ul class="sub-list">
                                                     <% for (Evidencia ev : evidencias) { %>
                                                         <li>
-                                                            <div>
-                                                                <span class="badge badge-activo" style="margin-right: 0.4rem; font-size: 0.7rem;"><%= ev.getTipo() %></span>
-                                                                <a href="<%= ev.getUrlORuta() %>" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline;">
-                                                                    <%= ev.getUrlORuta() %>
+                                                            <%
+                                                                String rutaEv = ev.getUrlORuta();
+                                                                boolean archivoSubido = rutaEv != null && rutaEv.startsWith(AlmacenEvidencias.PREFIJO_URL);
+                                                                boolean imagenSubida = archivoSubido && AlmacenEvidencias.esImagen(rutaEv);
+                                                            %>
+                                                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                                                <span class="badge badge-activo" style="font-size: 0.7rem;"><%= ev.getTipo() %></span>
+                                                                <a href="<%= rutaEv %>" target="_blank" rel="noopener noreferrer" style="color: var(--primary); text-decoration: underline; display: inline-flex; align-items: center; gap: 0.4rem;">
+                                                                    <% if (imagenSubida) { %>
+                                                                        <img src="<%= rutaEv %>" alt="Captura adjunta" style="width: 48px; height: 36px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border);">
+                                                                        Ver captura
+                                                                    <% } else if (archivoSubido) { %>
+                                                                        Abrir documento (.<%= AlmacenEvidencias.extension(rutaEv) %>)
+                                                                    <% } else { %>
+                                                                        <%= rutaEv %>
+                                                                    <% } %>
                                                                 </a>
                                                             </div>
                                                             <span style="font-size: 0.75rem; color: var(--text-muted);"><%= ev.getFecha() %></span>
@@ -316,19 +354,24 @@
                                             <% } %>
 
                                             <!-- Formulario Inline: Adjuntar Evidencia -->
-                                            <form method="POST" action="${pageContext.request.contextPath}/evidencias" style="margin-top: 0.5rem; display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
+                                            <%-- multipart para poder subir capturas y documentos; proyectoId va en la URL
+                                                 para que el servlet lo conserve aunque el archivo exceda el limite --%>
+                                            <form method="POST" action="${pageContext.request.contextPath}/evidencias?proyectoId=<%= proyectoId %>"
+                                                  enctype="multipart/form-data" accept-charset="UTF-8"
+                                                  class="form-evidencia" style="margin-top: 0.5rem; display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;">
                                                 <input type="hidden" name="tareaId" value="<%= t.getId() %>">
-                                                <input type="hidden" name="proyectoId" value="<%= proyectoId %>">
                                                 <select name="tipo" class="form-control select-tipo-evidencia" style="width: auto; min-width: 105px; font-size: 0.82rem; padding: 0.35rem 0.5rem;" required>
                                                     <option value="enlace">Enlace</option>
                                                     <option value="captura">Captura</option>
                                                     <option value="documento">Documento</option>
                                                     <option value="codigo">Código</option>
                                                 </select>
-                                                <input type="text" name="urlORuta" class="form-control input-ruta-evidencia" style="flex: 1; min-width: 170px; font-size: 0.82rem; padding: 0.35rem 0.6rem;" placeholder="URL o enlace del recurso..." required>
+                                                <input type="text" name="urlORuta" class="form-control input-ruta-evidencia" style="flex: 1; min-width: 170px; font-size: 0.82rem; padding: 0.35rem 0.6rem;" placeholder="URL o enlace del recurso..." aria-label="URL o ruta de la evidencia" required>
+                                                <input type="file" name="archivo" class="form-control input-archivo-evidencia" style="flex: 1; min-width: 170px; font-size: 0.82rem; padding: 0.3rem 0.5rem; display: none;" aria-label="Archivo de la evidencia" disabled>
                                                 <button type="submit" class="btn btn-sm btn-outline" style="white-space: nowrap;">
                                                     + Adjuntar
                                                 </button>
+                                                <div class="form-hint hint-evidencia" style="flex-basis: 100%; display: none;"></div>
                                             </form>
                                         </div>
 
@@ -400,21 +443,63 @@
         <p><strong>PR05 &bull; Seguimiento de Proyectos</strong></p>
     </footer>
 
-    <!-- Script dinámico para cambiar el placeholder según el tipo de evidencia -->
+    <!-- Script: segun el tipo de evidencia muestra el campo de texto (enlace, codigo)
+         o el selector de archivo (captura, documento). El servidor vuelve a validar todo. -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const selectores = document.querySelectorAll('.select-tipo-evidencia');
-            selectores.forEach(function(select) {
-                select.addEventListener('change', function() {
-                    const inputRuta = this.form.querySelector('.input-ruta-evidencia');
-                    if (this.value === 'documento' || this.value === 'codigo') {
-                        inputRuta.placeholder = 'Ruta o nombre del archivo (ej. docs/manual.pdf)...';
-                    } else if (this.value === 'captura') {
-                        inputRuta.placeholder = 'Ruta de imagen (ej. img/captura.png)...';
-                    } else {
-                        inputRuta.placeholder = 'URL o enlace del recurso...';
+            var TAMANO_MAXIMO = 5 * 1024 * 1024;
+            var TIPOS_ARCHIVO = {
+                captura: {
+                    accept: '<%= AlmacenEvidencias.extensionesPermitidas("captura").replace(" ", "") %>',
+                    ayuda: 'Imagen <%= AlmacenEvidencias.extensionesPermitidas("captura") %> de hasta 5 MB.'
+                },
+                documento: {
+                    accept: '<%= AlmacenEvidencias.extensionesPermitidas("documento").replace(" ", "") %>',
+                    ayuda: 'Documento <%= AlmacenEvidencias.extensionesPermitidas("documento") %> de hasta 5 MB.'
+                }
+            };
+
+            function actualizar(form) {
+                var tipo = form.querySelector('.select-tipo-evidencia').value;
+                var inputRuta = form.querySelector('.input-ruta-evidencia');
+                var inputArchivo = form.querySelector('.input-archivo-evidencia');
+                var ayuda = form.querySelector('.hint-evidencia');
+                var config = TIPOS_ARCHIVO[tipo];
+
+                // el campo oculto se deshabilita para que no se envie ni bloquee el required
+                inputRuta.style.display = config ? 'none' : '';
+                inputRuta.disabled = !!config;
+                inputRuta.required = !config;
+                inputArchivo.style.display = config ? '' : 'none';
+                inputArchivo.disabled = !config;
+                inputArchivo.required = !!config;
+
+                if (config) {
+                    inputArchivo.accept = config.accept;
+                    ayuda.textContent = config.ayuda;
+                    ayuda.style.display = '';
+                } else {
+                    inputArchivo.value = '';
+                    inputRuta.placeholder = (tipo === 'codigo')
+                        ? 'Ruta o enlace del codigo (ej. src/main/java/...)...'
+                        : 'URL o enlace del recurso...';
+                    ayuda.style.display = 'none';
+                }
+            }
+
+            document.querySelectorAll('.form-evidencia').forEach(function(form) {
+                form.querySelector('.select-tipo-evidencia').addEventListener('change', function() {
+                    actualizar(form);
+                });
+                form.addEventListener('submit', function(evento) {
+                    var inputArchivo = form.querySelector('.input-archivo-evidencia');
+                    if (!inputArchivo.disabled && inputArchivo.files.length > 0
+                            && inputArchivo.files[0].size > TAMANO_MAXIMO) {
+                        evento.preventDefault();
+                        alert('El archivo no debe superar 5 MB.');
                     }
                 });
+                actualizar(form);
             });
         });
     </script>

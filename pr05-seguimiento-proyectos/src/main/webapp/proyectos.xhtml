@@ -1,76 +1,124 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<html xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:h="http://xmlns.jcp.org/jsf/html"
-      xmlns:f="http://xmlns.jcp.org/jsf/core"
-      xmlns:p="http://primefaces.org/ui">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:h="http://xmlns.jcp.org/jsf/html"
+                xmlns:f="http://xmlns.jcp.org/jsf/core"
+                xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+                xmlns:p="http://primefaces.org/ui"
+                template="/WEB-INF/templates/plantilla.xhtml">
 
-<h:head>
-    <title>PR05 - Proyectos (Web 2.0 - JSF/PrimeFaces)</title>
-</h:head>
+    <ui:param name="paginaActiva" value="proyectos" />
+    <ui:param name="tituloPagina" value="Proyectos" />
 
-<h:body>
-    <h:form id="formProyectos">
+    <ui:define name="encabezado">
+        <p:breadCrumb styleClass="ruta">
+            <p:menuitem value="Inicio" url="#{request.contextPath}/" />
+            <p:menuitem value="Proyectos" outcome="proyectos" />
+        </p:breadCrumb>
+        <h1>Proyectos</h1>
+        <p class="page-subtitle">
+            Registra un proyecto nuevo y consulta los existentes. Desde cada fila puedes abrir su tablero de tareas.
+        </p>
+    </ui:define>
 
-        <p:growl id="mensajes" showDetail="true" />
+    <ui:define name="contenido">
+        <!-- Mensajes globales (resultado de la accion del bean). Los errores de campo se muestran junto a cada campo. -->
+        <p:growl id="mensajes" showDetail="true" globalOnly="true" life="5000" />
 
-        <p:panel header="Nuevo proyecto">
-            <h:panelGrid columns="2" cellpadding="5">
+        <div class="grid-2">
 
-                <p:outputLabel for="nombre" value="Nombre *" />
-                <p:inputText id="nombre" value="#{proyectoBean.nombre}" required="true"
-                             requiredMessage="El nombre es obligatorio." />
+            <!-- ===== Listado de proyectos ===== -->
+            <h:form id="formTabla">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Proyectos registrados</h2>
+                        <span class="contador">#{proyectoBean.proyectos.size()} en total</span>
+                    </div>
+                    <p:dataTable id="tablaProyectos" var="p" value="#{proyectoBean.proyectos}"
+                                 styleClass="tabla-web2" stripedRows="true" rowHover="true"
+                                 paginator="true" rows="8" paginatorAlwaysVisible="false"
+                                 paginatorPosition="bottom" sortMode="single"
+                                 emptyMessage="Aun no hay proyectos registrados. Usa el formulario para crear el primero.">
 
-                <p:outputLabel for="descripcion" value="Descripcion" />
-                <p:inputTextarea id="descripcion" value="#{proyectoBean.descripcion}" rows="3" />
+                        <p:column headerText="ID" sortBy="#{p.id}" styleClass="col-id">
+                            <h:outputText value="#{p.id}" />
+                        </p:column>
 
-                <p:outputLabel for="fechaInicio" value="Fecha de inicio *" />
-                <p:calendar id="fechaInicio" value="#{proyectoBean.fechaInicio}"
-                            pattern="yyyy-MM-dd" required="true"
-                            requiredMessage="La fecha de inicio es obligatoria." />
+                        <p:column headerText="Nombre" sortBy="#{p.nombre}">
+                            <h:outputText value="#{p.nombre}" styleClass="texto-principal" />
+                            <h:outputText value="#{p.descripcion}" styleClass="texto-secundario"
+                                          rendered="#{not empty p.descripcion}" />
+                        </p:column>
 
-            </h:panelGrid>
+                        <p:column headerText="Inicio" sortBy="#{p.fechaInicio}" styleClass="col-fecha">
+                            <h:outputText value="#{p.fechaInicio}">
+                                <f:convertDateTime pattern="yyyy-MM-dd" />
+                            </h:outputText>
+                        </p:column>
 
-            <p:commandButton value="Crear proyecto" action="#{proyectoBean.crear}"
-                              update="formProyectos" process="@form" />
-        </p:panel>
+                        <p:column headerText="Estado" sortBy="#{p.estado}" styleClass="col-estado">
+                            <p:tag value="#{p.estado}" styleClass="estado estado-#{p.estado}" />
+                        </p:column>
 
-        <p:separator />
+                        <p:column headerText="Acciones" styleClass="col-acciones">
+                            <p:linkButton outcome="tareas" value="Ver tareas" icon="pi pi-arrow-right"
+                                          iconPos="right" styleClass="ui-button-outlined boton-chico"
+                                          title="Abrir el tablero de tareas de #{p.nombre}">
+                                <f:param name="proyectoId" value="#{p.id}" />
+                            </p:linkButton>
+                        </p:column>
 
-        <p:panel header="Proyectos registrados">
-            <p:dataTable id="tablaProyectos" var="p" value="#{proyectoBean.proyectos}"
-                         emptyMessage="No hay proyectos registrados todavia.">
+                    </p:dataTable>
+                </div>
+            </h:form>
 
-                <p:column headerText="ID">
-                    <h:outputText value="#{p.id}" />
-                </p:column>
+            <!-- ===== Alta de proyecto ===== -->
+            <h:form id="formProyectos">
+                <div class="card">
+                    <div class="card-header">
+                        <h2>Nuevo proyecto</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="form-hint campos-obligatorios">Los campos marcados con * son obligatorios.</p>
 
-                <p:column headerText="Nombre">
-                    <h:outputText value="#{p.nombre}" />
-                </p:column>
+                        <div class="campo">
+                            <p:outputLabel for="nombre" value="Nombre" indicateRequired="true" />
+                            <p:inputText id="nombre" value="#{proyectoBean.nombre}" required="true"
+                                         maxlength="120" placeholder="Ej. Portal de servicios escolares"
+                                         requiredMessage="Escribe el nombre del proyecto." />
+                            <p:message for="nombre" display="text" />
+                        </div>
 
-                <p:column headerText="Descripcion">
-                    <h:outputText value="#{p.descripcion}" />
-                </p:column>
+                        <div class="campo">
+                            <p:outputLabel for="descripcion" value="Descripcion" />
+                            <p:inputTextarea id="descripcion" value="#{proyectoBean.descripcion}" rows="3"
+                                             maxlength="500" counter="contadorDescripcion"
+                                             counterTemplate="{0} caracteres restantes" autoResize="false" />
+                            <h:outputText id="contadorDescripcion" styleClass="form-hint" />
+                        </div>
 
-                <p:column headerText="Fecha inicio">
-                    <h:outputText value="#{p.fechaInicio}">
-                        <f:convertDateTime pattern="yyyy-MM-dd" />
-                    </h:outputText>
-                </p:column>
+                        <div class="campo">
+                            <p:outputLabel for="fechaInicio" value="Fecha de inicio" indicateRequired="true" />
+                            <p:datePicker id="fechaInicio" value="#{proyectoBean.fechaInicio}"
+                                          pattern="yyyy-MM-dd" showIcon="true" required="true"
+                                          placeholder="aaaa-mm-dd"
+                                          requiredMessage="Selecciona la fecha de inicio."
+                                          converterMessage="La fecha debe tener el formato aaaa-mm-dd." />
+                            <p:message for="fechaInicio" display="text" />
+                        </div>
 
-                <p:column headerText="Estado">
-                    <h:outputText value="#{p.estado}" />
-                </p:column>
+                        <div class="acciones-form">
+                            <p:commandButton value="Crear proyecto" icon="pi pi-check"
+                                             action="#{proyectoBean.crear}"
+                                             process="@form"
+                                             update="@form :formTabla :mensajes" />
+                            <p:commandButton value="Limpiar" icon="pi pi-times" type="reset"
+                                             styleClass="ui-button-secondary ui-button-outlined" />
+                        </div>
+                    </div>
+                </div>
+            </h:form>
 
-                <p:column headerText="Tareas">
-                    <h:link outcome="tareas" value="Ver tareas">
-                        <f:param name="proyectoId" value="#{p.id}" />
-                    </h:link>
-                </p:column>
+        </div>
+    </ui:define>
 
-            </p:dataTable>
-        </p:panel>
-
-    </h:form>
-</h:body>
-</html>
+</ui:composition>

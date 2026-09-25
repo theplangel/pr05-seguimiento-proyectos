@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Plantilla Facelets comun para las vistas Web 2.0 (P03).
+    Centraliza encabezado, barra de navegacion, contenedor y pie de pagina
+    para que proyectos.xhtml y tareas.xhtml tengan la misma apariencia.
+
+    Parametros (ui:param) que puede enviar cada vista:
+      - paginaActiva : "proyectos" | "tareas"  (resalta la opcion del menu)
+      - tituloPagina : texto de la etiqueta <title>
+    Secciones (ui:define) disponibles:
+      - metadata     : f:metadata (viewParam / viewAction)
+      - encabezado   : titulo, subtitulo y ruta de navegacion de la vista
+      - contenido    : cuerpo principal
+-->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:ui="http://xmlns.jcp.org/jsf/facelets"
+      lang="es">
+
+<ui:insert name="metadata" />
+
+<h:head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>#{empty tituloPagina ? 'Seguimiento de Proyectos' : tituloPagina} | PR05 Web 2.0</title>
+
+    <!-- Se cargan al final del head para que sobrescriban el tema de PrimeFaces -->
+    <f:facet name="last">
+        <link rel="stylesheet" href="#{request.contextPath}/css/estilos.css" />
+        <link rel="stylesheet" href="#{request.contextPath}/css/web2.css" />
+    </f:facet>
+</h:head>
+
+<h:body styleClass="web2">
+
+    <a href="#contenido-principal" class="skip-link">Saltar al contenido</a>
+
+    <header class="navbar">
+        <div class="navbar-inner">
+            <h:link outcome="proyectos" styleClass="navbar-brand">
+                <span class="brand-logo" aria-hidden="true">SP</span>
+                Seguimiento de Proyectos
+            </h:link>
+
+            <nav aria-label="Navegacion principal">
+                <ul class="navbar-nav">
+                    <li>
+                        <a href="#{request.contextPath}/" class="nav-link">Inicio</a>
+                    </li>
+                    <li>
+                        <h:link outcome="proyectos" value="Proyectos"
+                                styleClass="nav-link #{paginaActiva eq 'proyectos' ? 'active' : ''}" />
+                    </li>
+                    <li>
+                        <!-- Tareas depende de un proyecto; solo se marca activa dentro de tareas.xhtml -->
+                        <h:outputText value="Tareas" rendered="#{paginaActiva eq 'tareas'}"
+                                      styleClass="nav-link active" />
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main id="contenido-principal" class="container">
+        <section class="page-header">
+            <ui:insert name="encabezado" />
+        </section>
+
+        <ui:insert name="contenido" />
+    </main>
+
+    <footer class="footer">
+        <strong>PR05 - Seguimiento de Proyectos</strong>
+        &#183; Desarrollo de Sistemas Web &#183; P03 Web 2.0 con JSF, PrimeFaces y PostgreSQL
+    </footer>
+
+</h:body>
+</html>
