@@ -1,0 +1,11 @@
+# Artefactos de compilación
+target/
+dist/
+.angular/
+node_modules/
+# IDE / herramientas
+.vscode/
+.idea/
+*.iml
+# Entorno local
+.env
