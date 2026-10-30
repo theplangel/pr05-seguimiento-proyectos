@@ -1,0 +1,49 @@
+<p><a routerLink="/proyectos" data-testid="volver">← Volver a la lista</a></p>
+
+@if (cargando) {
+  <section class="panel cargando-panel" aria-busy="true" data-testid="cargando">
+    <span class="spinner oscuro" aria-hidden="true"></span> Cargando proyecto…
+  </section>
+} @else if (error) {
+  <section class="panel vacio" role="alert" data-testid="error-detalle">
+    <h2>{{ error.status === 404 ? 'Proyecto no encontrado' : 'No se pudo cargar el proyecto' }}</h2>
+    <p>{{ error.mensaje }}</p>
+    @if (error.status === 0 || error.status >= 500) {
+      <button type="button" (click)="cargar()" data-testid="reintentar">Reintentar</button>
+    }
+  </section>
+} @else if (proyecto) {
+  @if (mensajeOk) { <p class="banner ok" role="status" data-testid="ok">{{ mensajeOk }}</p> }
+  @if (mensajeError) { <p class="banner error" role="alert" data-testid="error">{{ mensajeError }}</p> }
+
+  <article class="panel detalle" data-testid="detalle" [attr.aria-busy]="cambiando">
+    <header class="encabezado">
+      <h2 data-testid="titulo-detalle">#{{ proyecto.id }} · {{ proyecto.titulo }}</h2>
+      <span class="estado" [attr.data-estado]="proyecto.estado" data-testid="estado-actual">{{ etiqueta(proyecto.estado) }}</span>
+    </header>
+
+    <ol class="ciclo" aria-label="Ciclo de estados">
+      @for (e of estados; track e) {
+        <li [class]="paso(e)" [attr.aria-current]="paso(e) === 'actual' ? 'step' : null">{{ etiqueta(e) }}</li>
+      }
+    </ol>
+
+    <dl>
+      <dt>Descripción</dt><dd>{{ proyecto.descripcion }}</dd>
+      <dt>Integrantes</dt><dd>{{ proyecto.integrantes }}</dd>
+      <dt>Asesor</dt><dd>{{ proyecto.asesor }}</dd>
+      <dt>Registrado</dt><dd>{{ proyecto.fechaCreacion | date: 'dd/MM/yyyy HH:mm' }}</dd>
+      <dt>Última actualización</dt><dd data-testid="actualizado">{{ proyecto.fechaActualizacion | date: 'dd/MM/yyyy HH:mm' }}</dd>
+    </dl>
+
+    <footer class="acciones">
+      @if (cambiando) {
+        <small data-testid="procesando"><span class="spinner oscuro" aria-hidden="true"></span> Actualizando estado…</small>
+      } @else {
+        @for (d of proyecto.estadosPermitidos; track d) {
+          <button type="button" (click)="cambiar(d)" [attr.data-testid]="'mover-' + d">Mover a {{ etiqueta(d) }}</button>
+        } @empty { <small class="tenue" data-testid="final">El proyecto está en su estado final; no admite más cambios.</small> }
+      }
+    </footer>
+  </article>
+}
