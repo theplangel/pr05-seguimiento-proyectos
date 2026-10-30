@@ -1,0 +1,49 @@
+# PR05 / P05 — Angular + Spring Boot + PostgreSQL. Sin servicios externos.
+# Arranque: docker compose up --build   ->   http://localhost:4200
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: proyectos
+      POSTGRES_USER: proyectos
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-proyectos_local_2026}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"   # opcional: psql -h localhost -p 5433 -U proyectos proyectos
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proyectos -d proyectos"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./proyectos-backend
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: proyectos
+      DB_USER: proyectos
+      DB_PASSWORD: ${DB_PASSWORD:-proyectos_local_2026}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  frontend:
+    build: ./proyectos-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "4200:80"
+
+volumes:
+  pgdata:

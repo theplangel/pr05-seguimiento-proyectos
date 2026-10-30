@@ -1,0 +1,71 @@
+<section class="panel">
+  <h2>Registrar proyecto</h2>
+  <form [formGroup]="form" (ngSubmit)="crear()" novalidate data-testid="form-proyecto">
+    <label>Título
+      <input formControlName="titulo" maxlength="130" data-testid="titulo" />
+      @if (invalido('titulo')) { <small class="err">El título es obligatorio (máx. 120).</small> }
+      @if (erroresServidor['titulo']) { <small class="err">{{ erroresServidor['titulo'] }}</small> }
+    </label>
+    <label>Descripción
+      <textarea formControlName="descripcion" rows="2" data-testid="descripcion"></textarea>
+      @if (invalido('descripcion')) { <small class="err">La descripción es obligatoria (máx. 500).</small> }
+      @if (erroresServidor['descripcion']) { <small class="err">{{ erroresServidor['descripcion'] }}</small> }
+    </label>
+    <label>Integrantes
+      <input formControlName="integrantes" data-testid="integrantes" />
+      @if (invalido('integrantes')) { <small class="err">Los integrantes son obligatorios (máx. 250).</small> }
+      @if (erroresServidor['integrantes']) { <small class="err">{{ erroresServidor['integrantes'] }}</small> }
+    </label>
+    <label>Asesor
+      <input formControlName="asesor" data-testid="asesor" />
+      @if (invalido('asesor')) { <small class="err">El asesor es obligatorio (máx. 120).</small> }
+      @if (erroresServidor['asesor']) { <small class="err">{{ erroresServidor['asesor'] }}</small> }
+    </label>
+    <button type="submit" [disabled]="enviando" data-testid="guardar">
+      {{ enviando ? 'Guardando…' : 'Registrar' }}
+    </button>
+  </form>
+</section>
+
+@if (mensajeOk) { <p class="banner ok" role="status" data-testid="ok">{{ mensajeOk }}</p> }
+@if (mensajeError) { <p class="banner error" role="alert" data-testid="error">{{ mensajeError }}</p> }
+
+<section class="panel">
+  <div class="encabezado">
+    <h2>Proyectos</h2>
+    <label class="filtro">Estado
+      <select (change)="filtrar($any($event.target).value)" data-testid="filtro">
+        <option value="">Todos</option>
+        @for (e of estados; track e) { <option [value]="e">{{ e }}</option> }
+      </select>
+    </label>
+  </div>
+
+  @if (cargando) { <p>Cargando…</p> }
+  @else if (proyectos.length === 0) { <p data-testid="vacio">No hay proyectos para mostrar.</p> }
+  @else {
+    <div class="scroll">
+      <table data-testid="tabla">
+        <thead>
+          <tr><th>#</th><th>Título</th><th>Integrantes</th><th>Asesor</th><th>Estado</th><th>Acciones</th></tr>
+        </thead>
+        <tbody>
+          @for (p of proyectos; track p.id) {
+            <tr data-testid="fila">
+              <td>{{ p.id }}</td>
+              <td>{{ p.titulo }}<br /><small>{{ p.descripcion }}</small></td>
+              <td>{{ p.integrantes }}</td>
+              <td>{{ p.asesor }}</td>
+              <td><span class="estado" [attr.data-estado]="p.estado">{{ p.estado }}</span></td>
+              <td>
+                @for (d of p.estadosPermitidos; track d) {
+                  <button type="button" (click)="avanzar(p, d)" [attr.data-testid]="'mover-' + d">→ {{ d }}</button>
+                } @empty { <small>Estado final</small> }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
