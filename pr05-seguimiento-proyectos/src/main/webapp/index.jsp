@@ -22,6 +22,7 @@
                     <li><a href="${pageContext.request.contextPath}/" class="nav-link active">Inicio</a></li>
                     <li><a href="${pageContext.request.contextPath}/proyectos" class="nav-link">Catálogo de
                             Proyectos</a></li>
+                    <li><a href="${pageContext.request.contextPath}/proyectos.xhtml" class="nav-link">Versión Web 2.0 (JSF)</a></li>
                 </ul>
             </nav>
         </div>
@@ -38,6 +39,10 @@
                     <a href="${pageContext.request.contextPath}/proyectos" class="btn btn-primary"
                         style="padding: 0.75rem 1.75rem; font-size: 1.05rem;">
                         Catálogo de Proyectos &rarr;
+                    </a>
+                    <a href="${pageContext.request.contextPath}/proyectos.xhtml" class="btn btn-outline"
+                        style="padding: 0.75rem 1.75rem; font-size: 1.05rem;">
+                        Versión Web 2.0 (JSF + PrimeFaces)
                     </a>
                 </div>
             </div>
@@ -61,7 +66,7 @@
 
             <div class="card">
                 <div class="card-header">
-                    <h3>📋 2. Tareas y Flujo</h3>
+                    <h3>2. Tareas y Flujo</h3>
                 </div>
                 <div class="card-body">
                     <p style="font-size: 0.92rem; color: var(--text-muted); margin-bottom: 1rem;">
