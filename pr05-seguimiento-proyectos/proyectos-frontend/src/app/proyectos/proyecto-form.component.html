@@ -1,0 +1,36 @@
+<section class="panel">
+  <h2>Registrar proyecto</h2>
+  <form [formGroup]="form" (ngSubmit)="enviar()" novalidate data-testid="form-proyecto" [attr.aria-busy]="enviando">
+    <div class="rejilla">
+      <label>Título
+        <input formControlName="titulo" maxlength="130" data-testid="titulo" [class.campo-err]="invalido('titulo') || erroresServidor['titulo']" (input)="limpiarServidor('titulo')" />
+        @if (invalido('titulo')) { <small class="err">El título es obligatorio (máx. 120).</small> }
+        @if (erroresServidor['titulo']) { <small class="err">{{ erroresServidor['titulo'] }}</small> }
+      </label>
+      <label>Asesor
+        <input formControlName="asesor" data-testid="asesor" [class.campo-err]="invalido('asesor') || erroresServidor['asesor']" (input)="limpiarServidor('asesor')" />
+        @if (invalido('asesor')) { <small class="err">El asesor es obligatorio (máx. 120).</small> }
+        @if (erroresServidor['asesor']) { <small class="err">{{ erroresServidor['asesor'] }}</small> }
+      </label>
+    </div>
+    <label>Integrantes
+      <input formControlName="integrantes" placeholder="Separados por coma" data-testid="integrantes" [class.campo-err]="invalido('integrantes') || erroresServidor['integrantes']" (input)="limpiarServidor('integrantes')" />
+      @if (invalido('integrantes')) { <small class="err">Los integrantes son obligatorios (máx. 250).</small> }
+      @if (erroresServidor['integrantes']) { <small class="err">{{ erroresServidor['integrantes'] }}</small> }
+    </label>
+    <label>Descripción
+      <textarea formControlName="descripcion" rows="2" data-testid="descripcion" [class.campo-err]="invalido('descripcion') || erroresServidor['descripcion']" (input)="limpiarServidor('descripcion')"></textarea>
+      <small class="contador">{{ form.controls.descripcion.value.length }}/500</small>
+      @if (invalido('descripcion')) { <small class="err">La descripción es obligatoria (máx. 500).</small> }
+      @if (erroresServidor['descripcion']) { <small class="err">{{ erroresServidor['descripcion'] }}</small> }
+    </label>
+
+    @if (mensajeError) { <p class="banner error" role="alert" data-testid="error-form">{{ mensajeError }}</p> }
+
+    <div>
+      <button type="submit" [disabled]="enviando" data-testid="guardar">
+        @if (enviando) { <span class="spinner" aria-hidden="true"></span> Guardando… } @else { Registrar }
+      </button>
+    </div>
+  </form>
+</section>

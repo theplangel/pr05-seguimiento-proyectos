@@ -1,0 +1,61 @@
+# Evidencia frontend: recorrido HTTP a través de Nginx (http://localhost:4200) — 2026-10-30 17:27
+# Stack: docker compose up --build (BD limpia con down -v). Mismas peticiones que hace Angular.
+
+## Contenedores
+SERVICE    STATUS
+backend    Up 17 seconds (healthy)
+db         Up 23 seconds (healthy)
+frontend   Up Less than a second (health: starting)
+
+## Rutas del SPA (fallback a index.html)
+/                -> HTTP 200  <app-root></app-root>
+/proyectos       -> HTTP 200  <app-root></app-root>
+/proyectos/1     -> HTTP 200  <app-root></app-root>
+/proyectos/999   -> HTTP 200  <app-root></app-root>
+
+## Cabeceras de caché
+index.html:
+Cache-Control: no-cache
+main-FNHQFOXW.js:
+Cache-Control: public, max-age=604800, immutable
+
+## Proxy /api -> backend:8080
+GET /api/health:
+{"status":"UP","servicio":"proyectos-api","timestamp":"2026-10-30T23:27:18.359046Z"}  [HTTP 200]
+GET /api/proyectos (lista inicial):
+"id":1,"titulo":"Sistema de tutorías entre pares"	"estado":"EN_PROGRESO"
+"id":2,"titulo":"Control de ventas diarias"	"estado":"REGISTRADO"
+"id":3,"titulo":"Landing de cosméticos orgánicos"	"estado":"EN_REVISION"
+"id":4,"titulo":"Clasificador Iris con KNN"	"estado":"ENTREGADO"
+
+## Alta (formulario) POST /api/proyectos
+HTTP/1.1 201 
+Location: /api/proyectos/5
+{"id":5,"titulo":"Evidencia frontend P05"
+
+## Negativos (mensajes que muestra la UI)
+POST vacío:
+{"timestamp":"2026-10-30T23:27:19.527909Z","status":400,"error":"Bad Request","mensaje":"Datos de entrada inválidos","ruta":"/api/proyectos","campos":{"titulo":"El título es obligatorio","integrantes":"Los integrantes son obligatorios","descripcion":"La descripción es obligatoria","asesor":"El asesor es obligatorio"}}  [HTTP 400]
+POST duplicado:
+{"timestamp":"2026-10-30T23:27:19.630816Z","status":409,"error":"Conflict","mensaje":"Ya existe un proyecto con el título 'Evidencia frontend P05'","ruta":"/api/proyectos","campos":null}  [HTTP 409]
+Detalle inexistente:
+{"timestamp":"2026-10-30T23:27:19.749205Z","status":404,"error":"Not Found","mensaje":"No existe el proyecto con id 999","ruta":"/api/proyectos/999","campos":null}  [HTTP 404]
+Salto REGISTRADO->ENTREGADO:
+{"timestamp":"2026-10-30T23:27:19.885142Z","status":409,"error":"Conflict","mensaje":"Transición no permitida: REGISTRADO -> ENTREGADO. Permitidas: [EN_PROGRESO]","ruta":"/api/proyectos/5/estado","campos":null}  [HTTP 409]
+
+## Cambio de estado (botones) PATCH /api/proyectos/5/estado
+-> EN_PROGRESO  [HTTP 200]
+-> EN_REVISION  [HTTP 200]
+-> ENTREGADO  [HTTP 200]
+
+## Persistencia: detalle releído (GET /api/proyectos/5) y fila en PostgreSQL
+"estado":"ENTREGADO","estadosPermitidos":[]
+ id |             titulo              |   estado    
+----+---------------------------------+-------------
+  1 | Sistema de tutorías entre pares | EN_PROGRESO
+  2 | Control de ventas diarias       | REGISTRADO
+  3 | Landing de cosméticos orgánicos | EN_REVISION
+  4 | Clasificador Iris con KNN       | ENTREGADO
+  5 | Evidencia frontend P05          | ENTREGADO
+(5 rows)
+

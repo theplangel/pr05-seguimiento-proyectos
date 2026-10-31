@@ -1,33 +1,30 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { ApiError, ESTADOS, Estado, Proyecto } from '../core/models';
 import { ProyectosService } from '../core/proyectos.service';
+import { ProyectoFormComponent } from './proyecto-form.component';
 
+/** Página principal: formulario de alta + lista filtrable con cambio de estado por fila. */
 @Component({
   selector: 'app-proyectos',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [RouterLink, ProyectoFormComponent],
   templateUrl: './proyectos.component.html',
 })
 export class ProyectosComponent implements OnInit {
   readonly estados = ESTADOS;
+  readonly esqueleto = [1, 2, 3];
   proyectos: Proyecto[] = [];
   filtro: Estado | '' = '';
   cargando = false;
-  enviando = false;
+  errorCarga = '';
+  /** Id del proyecto cuyo PATCH está en curso: bloquea sus botones para evitar dobles envíos. */
+  procesandoId: number | null = null;
   mensajeOk = '';
   mensajeError = '';
-  erroresServidor: Record<string, string> = {};
+  ultimoCreadoId: number | null = null;
 
-  private readonly fb = inject(FormBuilder);
   private readonly servicio = inject(ProyectosService);
-
-  readonly form = this.fb.nonNullable.group({
-    titulo: ['', [Validators.required, Validators.maxLength(120), sinEspacios]],
-    descripcion: ['', [Validators.required, Validators.maxLength(500), sinEspacios]],
-    integrantes: ['', [Validators.required, Validators.maxLength(250), sinEspacios]],
-    asesor: ['', [Validators.required, Validators.maxLength(120), sinEspacios]],
-  });
 
   ngOnInit(): void {
     this.cargar();
@@ -35,6 +32,7 @@ export class ProyectosComponent implements OnInit {
 
   cargar(): void {
     this.cargando = true;
+    this.errorCarga = '';
     this.servicio.listar(this.filtro).subscribe({
       next: (lista) => {
         this.proyectos = lista;
@@ -42,7 +40,8 @@ export class ProyectosComponent implements OnInit {
       },
       error: (e: ApiError) => {
         this.cargando = false;
-        this.mensajeError = e.mensaje;
+        this.proyectos = [];
+        this.errorCarga = e.mensaje;
       },
     });
   }
@@ -53,57 +52,37 @@ export class ProyectosComponent implements OnInit {
     this.cargar();
   }
 
-  invalido(campo: 'titulo' | 'descripcion' | 'integrantes' | 'asesor'): boolean {
-    const c = this.form.controls[campo];
-    return c.invalid && (c.dirty || c.touched);
-  }
-
-  crear(): void {
+  alCrear(p: Proyecto): void {
     this.limpiarMensajes();
-    if (this.form.invalid) {
-      this.form.markAllAsTouched();
-      return;
-    }
-    this.enviando = true;
-    this.servicio.crear(this.form.getRawValue()).subscribe({
-      next: (p) => {
-        this.enviando = false;
-        this.mensajeOk = `Proyecto «${p.titulo}» registrado con id ${p.id}.`;
-        this.form.reset();
-        this.cargar();
-      },
-      error: (e: ApiError) => {
-        this.enviando = false;
-        this.mensajeError = e.mensaje;
-        this.erroresServidor = e.campos ?? {};
-      },
-    });
+    this.mensajeOk = `Proyecto «${p.titulo}» registrado con id ${p.id}.`;
+    this.ultimoCreadoId = p.id;
+    this.cargar();
   }
 
   avanzar(p: Proyecto, destino: Estado): void {
     this.limpiarMensajes();
+    this.procesandoId = p.id;
     this.servicio.cambiarEstado(p.id, destino).subscribe({
       next: (act) => {
+        this.procesandoId = null;
         this.mensajeOk = `«${act.titulo}» ahora está en ${act.estado}.`;
         this.cargar();
       },
       error: (e: ApiError) => {
+        this.procesandoId = null;
         this.mensajeError = e.mensaje;
         this.cargar(); // el estado pudo haber cambiado desde otro cliente
       },
     });
   }
 
+  etiqueta(e: Estado): string {
+    return e.replace(/_/g, ' ');
+  }
+
   private limpiarMensajes(): void {
     this.mensajeOk = '';
     this.mensajeError = '';
-    this.erroresServidor = {};
+    this.ultimoCreadoId = null;
   }
-}
-
-/** Rechaza valores que contienen solo espacios (el backend aplica @NotBlank). */
-function sinEspacios(control: { value: unknown }) {
-  return typeof control.value === 'string' && control.value.length > 0 && control.value.trim().length === 0
-    ? { espacios: true }
-    : null;
 }
