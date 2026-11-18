@@ -1,5 +1,5 @@
-# PR05 / P05 — Angular + Spring Boot + PostgreSQL. Sin servicios externos.
-# Arranque: docker compose up --build   ->   http://localhost:4200
+# PR05 / P05 + P06 — Angular + Spring Boot + PostgreSQL + fuente IoT simulada. Sin servicios externos.
+# Arranque: docker compose up --build   ->   http://localhost:4200  (pestaña «Dashboard IoT»)
 services:
   db:
     image: postgres:15-alpine
@@ -10,7 +10,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     ports:
-      - "5433:5432"   # opcional: psql -h localhost -p 5433 -U proyectos proyectos
+      - "5434:5432"   # opcional: psql -h localhost -p 5434 -U proyectos proyectos
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U proyectos -d proyectos"]
       interval: 5s
@@ -25,6 +25,7 @@ services:
       DB_NAME: proyectos
       DB_USER: proyectos
       DB_PASSWORD: ${DB_PASSWORD:-proyectos_local_2026}
+      IOT_API_KEY: ${IOT_API_KEY:-iot_local_2026}
     depends_on:
       db:
         condition: service_healthy
@@ -44,6 +45,21 @@ services:
         condition: service_healthy
     ports:
       - "4200:80"
+
+  # P06: fuente IoT simulada. Envía una lectura cada 5 s directamente al backend (red interna).
+  # Para pausarla y ver la desconexión:  docker compose stop simulador   (y  start  para reconectar)
+  simulador:
+    build: ./simulador
+    environment:
+      API_URL: http://backend:8080
+      IOT_API_KEY: ${IOT_API_KEY:-iot_local_2026}
+      DISPOSITIVO: sensor-lab-01
+      INTERVALO_SEG: "5"
+      ESCENARIO: ${ESCENARIO:-demo}   # demo | normal
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
 
 volumes:
   pgdata:
