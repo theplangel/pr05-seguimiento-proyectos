@@ -3,6 +3,8 @@ package mx.uv.proyectos;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import mx.uv.proyectos.iot.DatoIotInvalidoException;
+import mx.uv.proyectos.iot.DispositivoNoEncontradoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -49,6 +51,17 @@ public class ApiExceptionHandler {
     @ExceptionHandler(ProyectoNoEncontradoException.class)
     public ResponseEntity<ErrorResponse> noEncontrado(ProyectoNoEncontradoException ex, HttpServletRequest req) {
         return responder(HttpStatus.NOT_FOUND, ex.getMessage(), req, null);
+    }
+
+    @ExceptionHandler(DispositivoNoEncontradoException.class)
+    public ResponseEntity<ErrorResponse> dispositivoIotNoEncontrado(DispositivoNoEncontradoException ex,
+                                                                     HttpServletRequest req) {
+        return responder(HttpStatus.NOT_FOUND, ex.getMessage(), req, null);
+    }
+
+    @ExceptionHandler(DatoIotInvalidoException.class)
+    public ResponseEntity<ErrorResponse> datoIotInvalido(DatoIotInvalidoException ex, HttpServletRequest req) {
+        return responder(HttpStatus.BAD_REQUEST, ex.getMessage(), req, null);
     }
 
     @ExceptionHandler({TransicionInvalidaException.class, DataIntegrityViolationException.class})
