@@ -1,0 +1,18 @@
+# Registro de decisiones del equipo — P06
+
+| # | Decisión | Alternativas consideradas | Justificación | Consecuencia |
+|---|---|---|---|---|
+| D1 | **Una sola fuente simulada**: sensor de temperatura del laboratorio | Contador de personas, consumo eléctrico, varios sensores | Lo pide la actividad (una sola fuente). La temperatura permite mostrar umbrales, anomalías y desconexión con un solo valor | El modelo admite más dispositivos (`dispositivo`), pero el dashboard muestra uno |
+| D2 | **Ingesta por API REST** (`POST /api/iot/lecturas`) con lectura periódica en el dashboard | MQTT con Mosquitto, WebSocket/SSE | Sin broker nuevo: menos piezas, arranque con `docker compose up` y evidencia reproducible con `curl`. El criterio de la rúbrica acepta REST o lectura periódica justificada | Latencia ≤ 5 s. MQTT queda como evolución natural (el simulador solo cambiaría de transporte) |
+| D3 | **Polling cada 5 s** en Angular (`timer` + `switchMap`) | `setInterval`, WebSocket | `switchMap` cancela peticiones pendientes y evita acumulación; igual al periodo del sensor | Si la API cae, se conserva lo último mostrado y se reintenta solo |
+| D4 | **Frecuencia de 5 s** | 1 s, 30 s | Suficiente resolución para ver transiciones y bajo volumen (≈ 1 MB/día) | Desconexión = 3 periodos (15 s) |
+| D5 | **Las anomalías se guardan marcadas**, no se descartan | Descartarlas, corregirlas | Conserva evidencia del fallo y permite auditarlas; no alteran nivel, promedio ni gráfica | Más filas, pero consultables y visibles (✕) |
+| D6 | **Alerta solo al cambiar de nivel** | Alerta por cada lectura sobre el umbral | Evita ráfagas de alertas idénticas cada 5 s | Para ver cuánto duró un episodio se usa el historial |
+| D7 | **Salto brusco medido contra la última lectura válida** (no la última recibida) | Contra la anterior sin filtrar | Si se comparara con una anomalía, la lectura normal siguiente también parecería un salto | Un cambio real > 8 °C entre lecturas se marca anómalo; con sensor ambiental no ocurre |
+| D8 | **Desconexión detectada por planificador** (`@Scheduled`) | Calcularla al consultar | La ausencia de datos no genera tráfico; se necesita un proceso que mire el reloj y deje alerta persistente | Una instancia del backend (si hubiera varias habría que coordinar el job) |
+| D9 | **Clave de API por variable de entorno** + filtro antes del cuerpo | Basic auth, JWT, sin autenticación | Es lo mínimo defendible para un dispositivo; el filtro evita procesar cuerpos no autenticados | Una clave compartida (límite documentado) |
+| D10 | **Nginx bloquea el POST de ingesta en :4200** | Dejarlo abierto, firewall | Defensa en profundidad: el dashboard solo necesita leer | La prueba de ingesta se hace contra `:8080` |
+| D11 | **Gráfica en SVG propio**, sin librería | Chart.js, ngx-charts | Sin dependencias nuevas, build y pruebas más ligeros, control total de umbrales/anomalías/cortes | Mantener ~100 líneas de geometría (cubiertas con pruebas) |
+| D12 | **Horas en UTC** (`TIMESTAMP` + zona UTC en Hibernate) | `TIMESTAMPTZ`, hora local | Evita desfases entre contenedores y navegador; compatible con la validación de esquema de Hibernate | El navegador convierte a hora local al mostrar |
+| D13 | **El dashboard calcula la antigüedad con la hora del servidor** (`ahora`) | `Date.now()` del navegador | Un reloj desajustado en el cliente mostraría «desconectado» falsamente | Un campo más en `/estado` |
+| D14 | **Simulador en Python (solo biblioteca estándar)** con escenario `demo` cíclico | Script en Java, generador aleatorio puro | Sin instalación de paquetes; el ciclo `demo` recorre *todas* las reglas en ≈ 5 min, útil para evidencia | `ESCENARIO=normal` para una demo sin alertas |
