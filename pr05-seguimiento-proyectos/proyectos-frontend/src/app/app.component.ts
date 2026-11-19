@@ -16,6 +16,10 @@ import { ProyectosService } from './core/proyectos.service';
         <button type="button" class="secundario" (click)="verificar()" data-testid="reintentar-salud">Reintentar</button>
       }
     </header>
+    <nav class="navegacion" aria-label="Navegación principal">
+      <a routerLink="/proyectos">Proyectos</a>
+      <a routerLink="/iot">Dashboard IoT</a>
+    </nav>
     <main><router-outlet /></main>
   `,
 })
@@ -25,6 +29,9 @@ export class AppComponent implements OnInit {
   constructor(private readonly servicio: ProyectosService) {}
 
   ngOnInit(): void {
+    if (window.location.hash === '#iot') {
+      window.location.hash = '#/iot';
+    }
     this.verificar();
   }
 

@@ -8,6 +8,8 @@ a { color:var(--azul); }
 .barra button { margin:0; }
 .salud { font-size:.85rem; padding:.2rem .6rem; border-radius:1rem; background:#6b7785; }
 .salud.ok { background:#2e8540; } .salud.caida { background:var(--rojo); }
+.navegacion { display:flex; gap:.5rem; max-width:1000px; margin:.8rem auto 0; padding:0 1rem; }
+.navegacion a { padding:.45rem .8rem; border:1px solid var(--borde); border-radius:4px; background:#fff; text-decoration:none; font-weight:600; }
 main { max-width:1000px; margin:1rem auto; padding:0 1rem; }
 .panel { background:#fff; border:1px solid var(--borde); border-radius:8px; padding:1rem 1.2rem; margin-bottom:1rem; }
 .panel h2 { margin-top:0; font-size:1.05rem; }
@@ -69,3 +71,41 @@ td a { font-weight:600; }
 .ciclo li.actual { background:var(--azul); color:#fff; }
 .detalle footer { border-top:1px solid var(--borde); padding-top:.8rem; }
 @media (max-width:560px) { .detalle dl { grid-template-columns:1fr; } .detalle dd { margin-bottom:.4rem; } }
+
+/* Dashboard IoT */
+.tarjetas { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:.8rem; margin-bottom:1rem; }
+.tarjeta { background:#fff; border:1px solid var(--borde); border-radius:8px; padding:.8rem 1rem; }
+.tarjeta h3 { margin:0 0 .5rem; font-size:.9rem; color:var(--tenue); }
+.tarjeta .valor { margin:.2rem 0; font-size:2rem; font-weight:700; }
+.tarjeta .valor span { font-size:.9rem; color:var(--tenue); }
+.nivel { display:inline-block; padding:.25rem .55rem; border-radius:1rem; background:#e3e8ef; font-weight:700; }
+.nivel[data-nivel="OK"], .nivel[data-conexion="CONECTADO"] { background:#d4edda; color:#1e5e2f; }
+.nivel[data-nivel="ADVERTENCIA"] { background:#fff3cd; color:#775800; }
+.nivel[data-nivel="CRITICO"] { background:#fdecea; color:var(--rojo); }
+.banner.aviso { background:#fff3cd; border-color:#e6cf75; }
+.grafica { width:100%; min-width:620px; height:auto; max-height:360px; }
+.grafica .rejilla { stroke:#dde3ea; stroke-width:1; }
+.grafica .eje { fill:var(--tenue); font-size:10px; }
+.grafica .umbral { stroke-width:2; stroke-dasharray:5 4; }
+.grafica .umbral.adv { stroke:#c58a00; }
+.grafica .umbral.crit { stroke:var(--rojo); }
+.grafica .serie { stroke:var(--azul); stroke-width:2.5; }
+.grafica .anomalia line { stroke:var(--rojo); stroke-width:3; }
+.grafica .anomalia { cursor:pointer; }
+.leyenda { color:var(--tenue); }
+.sev { display:inline-block; padding:.15rem .45rem; border-radius:1rem; font-weight:700; background:#e3e8ef; }
+.sev[data-sev="ALTA"], .sev[data-sev="CRITICA"] { background:#fdecea; color:var(--rojo); }
+.sev[data-sev="ADVERTENCIA"] { background:#fff3cd; color:#775800; }
+.id-dispositivo { color:var(--tenue); font-weight:400; }
+@media (max-width:560px) {
+  .barra { padding:.65rem 1rem; }
+  .barra h1 { width:100%; font-size:1rem; }
+  .navegacion { margin:.5rem 0 0; padding:0 1rem; }
+  .navegacion a { flex:1; text-align:center; }
+  main { margin:.6rem auto; padding:0 .6rem; }
+  .panel { padding:.8rem; }
+  .tarjetas { grid-template-columns:1fr; }
+  .grafica { min-width:520px; }
+  .tarjeta .valor { font-size:1.65rem; }
+  table { min-width:520px; }
+}
