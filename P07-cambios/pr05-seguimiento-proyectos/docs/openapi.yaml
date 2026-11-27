@@ -1,0 +1,342 @@
+openapi: 3.0.3
+info:
+  title: Proyectos API (PR05 - Seguimiento de proyectos estudiantiles)
+  version: 1.2.0
+servers:
+  - url: http://localhost:8080
+# P07: toda la API exige usuario (HTTP Basic) salvo /api/health; la ingesta IoT usa la clave del dispositivo.
+security:
+  - BasicAuth: []
+paths:
+  /api/health:
+    get:
+      tags: [Salud]
+      summary: Indica que el servicio está activo
+      security: []
+      responses:
+        '200':
+          description: Servicio activo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Salud' }
+  /api/auth/yo:
+    get:
+      tags: [Autenticación]
+      summary: Valida las credenciales Basic y devuelve usuario y rol
+      responses:
+        '200':
+          description: Credenciales válidas
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sesion' }
+        '401': { $ref: '#/components/responses/Error401' }
+        '429': { $ref: '#/components/responses/Error429' }
+  /api/proyectos:
+    get:
+      tags: [Proyectos]
+      summary: Lista los proyectos, opcionalmente filtrados por estado
+      parameters:
+        - name: estado
+          in: query
+          required: false
+          schema: { $ref: '#/components/schemas/Estado' }
+      responses:
+        '401': { $ref: '#/components/responses/Error401' }
+        '200':
+          description: Lista de proyectos
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Proyecto' }
+        '400': { $ref: '#/components/responses/Error400' }
+    post:
+      tags: [Proyectos]
+      summary: Registra un proyecto (inicia en REGISTRADO)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProyectoRequest' }
+      responses:
+        '401': { $ref: '#/components/responses/Error401' }
+        '403': { $ref: '#/components/responses/Error403' }
+        '201':
+          description: Proyecto creado
+          headers:
+            Location: { schema: { type: string } }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Proyecto' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '409': { $ref: '#/components/responses/Error409' }
+  /api/proyectos/{id}:
+    get:
+      tags: [Proyectos]
+      summary: Consulta un proyecto por id
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      responses:
+        '401': { $ref: '#/components/responses/Error401' }
+        '200':
+          description: Proyecto encontrado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Proyecto' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '404': { $ref: '#/components/responses/Error404' }
+  /api/proyectos/{id}/estado:
+    patch:
+      tags: [Proyectos]
+      summary: Cambia el estado respetando las transiciones permitidas
+      description: |
+        REGISTRADO -> EN_PROGRESO -> EN_REVISION -> ENTREGADO.
+        EN_REVISION puede regresar a EN_PROGRESO. ENTREGADO es final.
+      parameters:
+        - { name: id, in: path, required: true, schema: { type: integer, format: int64 } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/EstadoRequest' }
+      responses:
+        '401': { $ref: '#/components/responses/Error401' }
+        '403': { $ref: '#/components/responses/Error403' }
+        '200':
+          description: Estado actualizado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Proyecto' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '404': { $ref: '#/components/responses/Error404' }
+        '409': { $ref: '#/components/responses/Error409' }
+  /api/iot/lecturas:
+    post:
+      tags: [IoT]
+      summary: Recibe una lectura del dispositivo (requiere cabecera X-API-Key)
+      description: |
+        Una sola fuente IoT simulada. La clave se valida ANTES de leer el cuerpo.
+        Las lecturas fuera de rango o con salto brusco se aceptan y se guardan marcadas como anómalas.
+      security:
+        - ApiKeyDispositivo: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LecturaRequest' }
+      responses:
+        '201':
+          description: Lectura registrada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LecturaIot' }
+        '400': { $ref: '#/components/responses/Error400' }
+        '401': { $ref: '#/components/responses/Error401' }
+        '404': { $ref: '#/components/responses/Error404' }
+    get:
+      tags: [IoT]
+      summary: Historial en orden cronológico (por defecto, la última hora)
+      parameters:
+        - { name: desde, in: query, required: false, schema: { type: string, format: date-time } }
+        - { name: hasta, in: query, required: false, schema: { type: string, format: date-time } }
+        - { name: limite, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 2000, default: 500 } }
+      responses:
+        '401': { $ref: '#/components/responses/Error401' }
+        '200':
+          description: Lecturas del rango (las más recientes si exceden el límite)
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/LecturaIot' }
+        '400': { $ref: '#/components/responses/Error400' }
+  /api/iot/estado:
+    get:
+      tags: [IoT]
+      summary: Estado actual (valor, nivel y conexión)
+      responses:
+        '401': { $ref: '#/components/responses/Error401' }
+        '200':
+          description: Estado del dispositivo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EstadoIot' }
+        '404': { $ref: '#/components/responses/Error404' }
+  /api/iot/resumen:
+    get:
+      tags: [IoT]
+      summary: Mínimo, máximo, promedio y anomalías del rango
+      parameters:
+        - { name: desde, in: query, required: false, schema: { type: string, format: date-time } }
+        - { name: hasta, in: query, required: false, schema: { type: string, format: date-time } }
+      responses:
+        '401': { $ref: '#/components/responses/Error401' }
+        '200':
+          description: Resumen
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ResumenIot' }
+        '400': { $ref: '#/components/responses/Error400' }
+  /api/iot/alertas:
+    get:
+      tags: [IoT]
+      summary: Alertas y eventos recientes (más nuevas primero)
+      parameters:
+        - { name: limite, in: query, required: false, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+      responses:
+        '401': { $ref: '#/components/responses/Error401' }
+        '200':
+          description: Alertas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/AlertaIot' }
+        '400': { $ref: '#/components/responses/Error400' }
+components:
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    ApiKeyDispositivo:
+      type: apiKey
+      in: header
+      name: X-API-Key
+  schemas:
+    Sesion:
+      type: object
+      properties:
+        usuario: { type: string, example: lider }
+        rol: { type: string, enum: [LIDER, INTEGRANTE] }
+    LecturaRequest:
+      type: object
+      required: [dispositivo, variable, unidad, valor]
+      additionalProperties: false
+      properties:
+        dispositivo: { type: string, maxLength: 40, example: sensor-lab-01 }
+        fechaHora:
+          type: string
+          format: date-time
+          description: Opcional (UTC). Si falta se usa la hora de recepción. No puede estar en el futuro ni tener más de 24 h.
+        variable: { type: string, maxLength: 40, example: temperatura }
+        unidad: { type: string, maxLength: 15, example: "°C" }
+        valor: { type: number, example: 25.4 }
+    LecturaIot:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        dispositivo: { type: string }
+        fechaHora: { type: string, format: date-time }
+        variable: { type: string }
+        unidad: { type: string }
+        valor: { type: number }
+        anomala: { type: boolean }
+        motivoAnomalia:
+          type: string
+          nullable: true
+          enum: [FUERA_DE_RANGO, SALTO_BRUSCO]
+    EstadoIot:
+      type: object
+      properties:
+        dispositivo: { type: string }
+        nombre: { type: string }
+        variable: { type: string }
+        unidad: { type: string }
+        conexion: { type: string, enum: [SIN_DATOS, CONECTADO, DESCONECTADO] }
+        nivel: { type: string, enum: [SIN_DATOS, OK, ADVERTENCIA, CRITICO] }
+        valorActual: { type: number, nullable: true }
+        fechaHoraUltimaLectura: { type: string, format: date-time, nullable: true }
+        ultimaRecepcion: { type: string, format: date-time, nullable: true }
+        ahora: { type: string, format: date-time }
+        frecuenciaSegundos: { type: integer }
+        umbralAdvertencia: { type: number }
+        umbralCritico: { type: number }
+        desconexionSegundos: { type: integer }
+    ResumenIot:
+      type: object
+      properties:
+        desde: { type: string, format: date-time }
+        hasta: { type: string, format: date-time }
+        lecturas: { type: integer, format: int64 }
+        anomalas: { type: integer, format: int64 }
+        minimo: { type: number, nullable: true }
+        maximo: { type: number, nullable: true }
+        promedio: { type: number, nullable: true }
+    AlertaIot:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        dispositivoId: { type: integer, format: int64 }
+        lecturaId: { type: integer, format: int64, nullable: true }
+        tipo: { type: string, enum: [ADVERTENCIA, CRITICA, ANOMALIA, DESCONEXION, RECONEXION, NORMALIZACION] }
+        severidad: { type: string, enum: [INFO, ADVERTENCIA, CRITICA] }
+        mensaje: { type: string }
+        fechaHora: { type: string, format: date-time }
+    Estado:
+      type: string
+      enum: [REGISTRADO, EN_PROGRESO, EN_REVISION, ENTREGADO]
+    Salud:
+      type: object
+      properties:
+        status: { type: string, example: UP }
+        servicio: { type: string, example: proyectos-api }
+        timestamp: { type: string, format: date-time }
+    ProyectoRequest:
+      type: object
+      required: [titulo, descripcion, integrantes, asesor]
+      additionalProperties: false
+      properties:
+        titulo: { type: string, maxLength: 120 }
+        descripcion: { type: string, maxLength: 500 }
+        integrantes: { type: string, maxLength: 250 }
+        asesor: { type: string, maxLength: 120 }
+    EstadoRequest:
+      type: object
+      required: [estado]
+      additionalProperties: false
+      properties:
+        estado: { $ref: '#/components/schemas/Estado' }
+    Proyecto:
+      type: object
+      properties:
+        id: { type: integer, format: int64 }
+        titulo: { type: string }
+        descripcion: { type: string }
+        integrantes: { type: string }
+        asesor: { type: string }
+        estado: { $ref: '#/components/schemas/Estado' }
+        estadosPermitidos:
+          type: array
+          items: { $ref: '#/components/schemas/Estado' }
+        fechaCreacion: { type: string, format: date-time }
+        fechaActualizacion: { type: string, format: date-time }
+    Error:
+      type: object
+      properties:
+        timestamp: { type: string, format: date-time }
+        status: { type: integer }
+        error: { type: string }
+        mensaje: { type: string }
+        ruta: { type: string }
+        campos:
+          type: object
+          additionalProperties: { type: string }
+  responses:
+    Error403:
+      description: Autenticado pero sin permiso para la operación (rol insuficiente o ruta no permitida)
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Error429:
+      description: Demasiados intentos fallidos de autenticación (cabecera Retry-After)
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Error401:
+      description: API key ausente o inválida
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Error400:
+      description: Entrada inválida
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Error404:
+      description: Proyecto inexistente
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }
+    Error409:
+      description: Conflicto (transición no permitida o título duplicado)
+      content: { application/json: { schema: { $ref: '#/components/schemas/Error' } } }

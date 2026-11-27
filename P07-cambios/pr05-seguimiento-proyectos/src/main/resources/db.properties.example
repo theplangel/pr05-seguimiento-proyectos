@@ -1,0 +1,5 @@
+# Plantilla de la conexión de la versión JSP/Servlets (P02). Copia este archivo a db.properties y pon TU contraseña.
+# db.properties NO se versiona (.gitignore).
+db.url=jdbc:postgresql://localhost:5432/seguimiento_proyectos
+db.user=postgres
+db.password=CAMBIAR_POR_TU_CONTRASENA

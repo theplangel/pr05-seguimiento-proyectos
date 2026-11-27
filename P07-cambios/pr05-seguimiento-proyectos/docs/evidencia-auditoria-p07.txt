@@ -1,0 +1,46 @@
+== ANTES de las correcciones (primera ejecución de scripts/auditoria-seguridad.sh) ==
+FAIL  Sin contraseñas por defecto ni credenciales conocidas en archivos del repositorio ./src/main/resources/db.properties ./README.md ./simulador/simulador.py
+FAIL  npm audit (dependencias de producción) sin vulnerabilidades altas/críticas
+== Resultado: 11 correctas, 2 fallidas ==
+(hallazgos: DEF-01 y DEF-03 en archivos; DEF-07 en dependencias)
+
+== DESPUÉS de las correcciones ==
+== Auditoría de seguridad (2026-11-27T21:39:41Z) ==
+--- Secretos
+SKIP  .env versionado (no es un repositorio Git)
+PASS  .env está en .gitignore
+PASS  .env.example no contiene valores secretos
+PASS  Sin contraseñas por defecto ni credenciales conocidas en archivos del repositorio
+PASS  Sin literales de contraseña o clave en el código de producción
+--- Configuración
+PASS  Hibernate solo valida el esquema (no lo modifica)
+PASS  Sin trazas en las respuestas de error
+PASS  Swagger desactivado por defecto
+PASS  docker-compose no publica el puerto de PostgreSQL
+PASS  El backend solo escucha en 127.0.0.1
+PASS  docker-compose exige DB_PASSWORD (sin valor por defecto)
+PASS  Nginx envía Content-Security-Policy
+PASS  El contenedor del backend corre sin root
+--- Dependencias
+PASS  npm audit (producción): sin vulnerabilidades CRÍTICAS
+AVISO npm audit: 8 vulnerabilities (4 moderate, 4 high)
+        Hallazgos altos/moderados de Angular 18: sin parche en la rama 18 (requiere salto de versión mayor).
+        Tratados como RIESGO ACEPTADO documentado: ver DEF-07 en docs/defectos-p07.md
+        Java: mvn -q org.owasp:dependency-check-maven:check   (opcional; requiere descargar la base NVD)
+== Resultado: 13 correctas, 0 fallidas ==
+
+== Detalle de npm audit (producción) ==
+@angular/common  <=19.2.25
+Severity: high
+@angular/common: Denial of Service (DoS) via OOM in Date Formatting (formatDate) - https://github.com/advisories/GHSA-48r7-hpm6-gfxm
+@angular/common: Weak 32-Bit Cache Key Hashing in `HttpTransferCache` Leading to Cross-Request Data Leakage and State Poisoning - https://github.com/advisories/GHSA-39pv-4j6c-2g6v
+@angular/common: Denial of Service (DoS) via OOM in Number Formatting (digitsInfo) - https://github.com/advisories/GHSA-p3vc-36g9-x9gr
+@angular/common: Information Leak via Default Caching of Credentialed Requests in HttpTransferCache - https://github.com/advisories/GHSA-q6f4-qqrg-jv6x
+@angular/common: XSRF Token Leakage via URL Parsing Discrepancy in Angular HTTP Client (Incomplete fix for CVE-2025-66035) - https://github.com/advisories/GHSA-jfgx-762w-99vr
+@angular/compiler  <=19.2.25
+Severity: high
+@angular/compiler: Two-Way Property Binding Sanitization Bypass (XSS) - https://github.com/advisories/GHSA-58w9-8g37-x9v5
+@angular/core  <=19.2.25
+Severity: high
+@angular/core: Angular Template and Dynamic Component Namespace Bypass leading to Cross-Site Scripting (XSS) - https://github.com/advisories/GHSA-692r-grfm-v8x7
+8 vulnerabilities (4 moderate, 4 high)

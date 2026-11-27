@@ -1,0 +1,82 @@
+# PR05 / P05 + P06 + P07 — Angular + Spring Boot + PostgreSQL + fuente IoT simulada. Sin servicios externos.
+# SECRETOS (P07): no hay contraseñas por defecto. Genera .env con  ./scripts/generar-env.sh  (ver docs/despliegue.md).
+# Arranque: docker compose up --build   ->   http://localhost:4200  (inicia sesión; pestaña «Dashboard IoT»)
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: proyectos
+      POSTGRES_USER: proyectos
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env (ejecuta ./scripts/generar-env.sh)}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    # P07: el puerto de PostgreSQL ya NO se publica en el host. Acceso: docker compose exec db psql -U proyectos -d proyectos
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proyectos -d proyectos"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: ./proyectos-backend
+    environment:
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_NAME: proyectos
+      DB_USER: proyectos
+      DB_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en .env (ejecuta ./scripts/generar-env.sh)}
+      IOT_API_KEY: ${IOT_API_KEY:?Falta IOT_API_KEY en .env (ejecuta ./scripts/generar-env.sh)}
+      APP_LIDER_USUARIO: ${APP_LIDER_USUARIO:-lider}
+      APP_LIDER_PASSWORD: ${APP_LIDER_PASSWORD:?Falta APP_LIDER_PASSWORD en .env (>= 12 caracteres)}
+      APP_INTEGRANTE_USUARIO: ${APP_INTEGRANTE_USUARIO:-integrante}
+      APP_INTEGRANTE_PASSWORD: ${APP_INTEGRANTE_PASSWORD:?Falta APP_INTEGRANTE_PASSWORD en .env (>= 12 caracteres)}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-false}
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:8080"   # P07: solo accesible desde este equipo (pruebas con curl); el público entra por :4200
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "curl", "-fs", "http://localhost:8080/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  frontend:
+    build: ./proyectos-frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "4200:80"
+    security_opt:
+      - no-new-privileges:true
+
+  # P06: fuente IoT simulada. Envía una lectura cada 5 s directamente al backend (red interna).
+  # Para pausarla y ver la desconexión:  docker compose stop simulador   (y  start  para reconectar)
+  simulador:
+    build: ./simulador
+    environment:
+      API_URL: http://backend:8080
+      IOT_API_KEY: ${IOT_API_KEY:?Falta IOT_API_KEY en .env (ejecuta ./scripts/generar-env.sh)}
+      DISPOSITIVO: sensor-lab-01
+      INTERVALO_SEG: "5"
+      ESCENARIO: ${ESCENARIO:-demo}   # demo | normal
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+volumes:
+  pgdata:
