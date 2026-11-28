@@ -15,10 +15,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
+import mx.uv.proyectos.seguridad.SecurityConfig;
 
+// P07: estas pruebas validan el comportamiento de la API con un LIDER autenticado; los roles se prueban en SeguridadRolesTest.
 @WebMvcTest({ProyectoController.class, HealthController.class})
+@Import(SecurityConfig.class)
+@WithMockUser(roles = "LIDER")
 class ProyectoControllerTest {
     @Autowired
     MockMvc mvc;
@@ -161,8 +167,9 @@ class ProyectoControllerTest {
     }
 
     @Test
-    void metodoNoPermitidoDevuelve405() throws Exception {
+    void metodoNoDeclaradoSeDeniegaPorDefecto() throws Exception {
+        // P07: lo que no está explícitamente permitido se deniega (antes respondía 405).
         mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete("/api/proyectos/1"))
-            .andExpect(status().isMethodNotAllowed());
+            .andExpect(status().isForbidden());
     }
 }

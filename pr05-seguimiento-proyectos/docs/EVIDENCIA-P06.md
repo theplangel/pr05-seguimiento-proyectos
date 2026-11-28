@@ -2,6 +2,8 @@
 
 Recorrido: **simulador → API (Spring Boot) → PostgreSQL → dashboard Angular**, con reglas de análisis y alertas.
 
+> **Desde P07** la API exige sesión: el dashboard pide iniciar sesión, `smoke-iot.sh` lee las credenciales de `.env` (`./scripts/generar-env.sh`) y las contraseñas por defecto ya no existen.
+
 ## A. Verificado durante el desarrollo
 
 | Qué | Cómo | Resultado |

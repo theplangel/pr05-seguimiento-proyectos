@@ -14,10 +14,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import mx.uv.proyectos.seguridad.SecurityConfig;
 
 @WebMvcTest(IotController.class)
+@Import(SecurityConfig.class)
+@WithMockUser(roles = "INTEGRANTE")
+@TestPropertySource(properties = "iot.api-key=clave-solo-para-pruebas")
 class IotControllerTest {
     private static final MediaType JSON = MediaType.APPLICATION_JSON;
     private static final String CUERPO =
@@ -135,7 +142,7 @@ class IotControllerTest {
     }
 
     @Test
-    void metodoNoPermitidoEnEstadoDevuelve405() throws Exception {
-        mvc.perform(post("/api/iot/estado").header("X-API-Key", clave)).andExpect(status().isMethodNotAllowed());
+    void metodoNoDeclaradoEnEstadoSeDeniega() throws Exception {
+        mvc.perform(post("/api/iot/estado").header("X-API-Key", clave)).andExpect(status().isForbidden());
     }
 }

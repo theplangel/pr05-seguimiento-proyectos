@@ -1,68 +1,68 @@
-== Smoke IoT contra http://backend:8080  (2026-11-18T22:56:00Z) ==
+== Smoke IoT contra http://localhost:8080  (2026-11-28T00:53:58Z) ==
    Recuerda detener el simulador:  docker compose stop simulador
 --- Positivas: recepción y tratamiento
 PASS  Salud de la API (HTTP 200)
-        {"status":"UP","servicio":"proyectos-api","timestamp":"2026-11-18T22:56:00.914803Z"}
+        {"status":"UP","servicio":"proyectos-api","timestamp":"2026-11-28T00:53:59.321181Z"}
 PASS  Estado del dispositivo (HTTP 200)
-        {"dispositivo":"sensor-lab-01","nombre":"Sensor de temperatura del laboratorio","variable":"temperatura","unidad":"°C","conexion":"CONECTADO","nivel":"OK","valorActual":24.43,"fechaHoraUltimaLectura":"2026-11-18T22:55:48.831Z","ultimaRecepcion":"2026-11-18T22:55:48.837897Z","ahora":"2026-11
+        {"dispositivo":"sensor-lab-01","nombre":"Sensor de temperatura del laboratorio","variable":"temperatura","unidad":"°C","conexion":"DESCONECTADO","nivel":"OK","valorActual":26.37,"fechaHoraUltimaLectura":"2026-11-28T00:52:50.816Z","ultimaRecepcion":"2026-11-28T00:52:50.820676Z","ahora":"2026
 PASS  El estado identifica al dispositivo
 PASS  Lectura base de 24.0 °C aceptada (HTTP 201)
 PASS  Lectura normal de 24.5 °C (HTTP 201)
-        {"id":92,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:56:01Z","variable":"temperatura","unidad":"°C","valor":24.5,"anomala":false,"motivoAnomalia":null}
+        {"id":392,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:54:01Z","variable":"temperatura","unidad":"°C","valor":24.5,"anomala":false,"motivoAnomalia":null}
 PASS  La lectura normal NO es anómala
 PASS  Cruce del umbral de advertencia (31 °C) (HTTP 201)
-        {"id":93,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:56:01Z","variable":"temperatura","unidad":"°C","valor":31.0,"anomala":false,"motivoAnomalia":null}
+        {"id":393,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:54:01Z","variable":"temperatura","unidad":"°C","valor":31.0,"anomala":false,"motivoAnomalia":null}
 PASS  Alertas tras cruzar 30 °C (HTTP 200)
-        [{"id":14,"dispositivoId":1,"lecturaId":93,"tipo":"ADVERTENCIA","severidad":"ADVERTENCIA","mensaje":"Nivel de ADVERTENCIA: 31.0 °C (umbral 30.0 °C)","fechaHora":"2026-11-18T22:56:01.237865Z"},{"id":13,"dispositivoId":1,"lecturaId":74,"tipo":"NORMALIZACION","severidad":"INFO","mensaje":"Val
+        [{"id":59,"dispositivoId":1,"lecturaId":393,"tipo":"ADVERTENCIA","severidad":"ADVERTENCIA","mensaje":"Nivel de ADVERTENCIA: 31.0 °C (umbral 30.0 °C)","fechaHora":"2026-11-28T00:54:02.193169Z"},{"id":58,"dispositivoId":1,"lecturaId":391,"tipo":"RECONEXION","severidad":"INFO","mensaje":"El d
 PASS  Existe una alerta de ADVERTENCIA
 PASS  Cruce del umbral crítico (36 °C) (HTTP 201)
-        {"id":94,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:56:01Z","variable":"temperatura","unidad":"°C","valor":36.0,"anomala":false,"motivoAnomalia":null}
+        {"id":394,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:54:02Z","variable":"temperatura","unidad":"°C","valor":36.0,"anomala":false,"motivoAnomalia":null}
 PASS  Estado con 36 °C (HTTP 200)
-        {"dispositivo":"sensor-lab-01","nombre":"Sensor de temperatura del laboratorio","variable":"temperatura","unidad":"°C","conexion":"CONECTADO","nivel":"CRITICO","valorActual":36.0,"fechaHoraUltimaLectura":"2026-11-18T22:56:01Z","ultimaRecepcion":"2026-11-18T22:56:01.385477Z","ahora":"2026-11
+        {"dispositivo":"sensor-lab-01","nombre":"Sensor de temperatura del laboratorio","variable":"temperatura","unidad":"°C","conexion":"CONECTADO","nivel":"CRITICO","valorActual":36.0,"fechaHoraUltimaLectura":"2026-11-28T00:54:02Z","ultimaRecepcion":"2026-11-28T00:54:03.212052Z","ahora":"2026-11
 PASS  El nivel actual es CRITICO
 PASS  Alertas tras cruzar 35 °C (HTTP 200)
-        [{"id":15,"dispositivoId":1,"lecturaId":94,"tipo":"CRITICA","severidad":"CRITICA","mensaje":"Nivel CRÍTICO: 36.0 °C (umbral 35.0 °C)","fechaHora":"2026-11-18T22:56:01.385477Z"},{"id":14,"dispositivoId":1,"lecturaId":93,"tipo":"ADVERTENCIA","severidad":"ADVERTENCIA","mensaje":"Nivel de ADV
+        [{"id":60,"dispositivoId":1,"lecturaId":394,"tipo":"CRITICA","severidad":"CRITICA","mensaje":"Nivel CRÍTICO: 36.0 °C (umbral 35.0 °C)","fechaHora":"2026-11-28T00:54:03.212052Z"},{"id":59,"dispositivoId":1,"lecturaId":393,"tipo":"ADVERTENCIA","severidad":"ADVERTENCIA","mensaje":"Nivel de A
 PASS  Existe una alerta CRITICA
 --- Positivas: datos anómalos (se guardan marcados y no cambian el nivel)
 PASS  Lectura fuera de rango (120 °C) (HTTP 201)
-        {"id":95,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:56:01Z","variable":"temperatura","unidad":"°C","valor":120.0,"anomala":true,"motivoAnomalia":"FUERA_DE_RANGO"}
+        {"id":395,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:54:04Z","variable":"temperatura","unidad":"°C","valor":120.0,"anomala":true,"motivoAnomalia":"FUERA_DE_RANGO"}
 PASS  Marcada FUERA_DE_RANGO
 PASS  Salto brusco (45 °C tras 36 °C) (HTTP 201)
-        {"id":96,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:56:01Z","variable":"temperatura","unidad":"°C","valor":45.0,"anomala":true,"motivoAnomalia":"SALTO_BRUSCO"}
+        {"id":396,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:54:05Z","variable":"temperatura","unidad":"°C","valor":45.0,"anomala":true,"motivoAnomalia":"SALTO_BRUSCO"}
 PASS  Marcada SALTO_BRUSCO
 PASS  Estado tras las anomalías (HTTP 200)
-        {"dispositivo":"sensor-lab-01","nombre":"Sensor de temperatura del laboratorio","variable":"temperatura","unidad":"°C","conexion":"CONECTADO","nivel":"CRITICO","valorActual":36.0,"fechaHoraUltimaLectura":"2026-11-18T22:56:01Z","ultimaRecepcion":"2026-11-18T22:56:01.579476Z","ahora":"2026-11
+        {"dispositivo":"sensor-lab-01","nombre":"Sensor de temperatura del laboratorio","variable":"temperatura","unidad":"°C","conexion":"CONECTADO","nivel":"CRITICO","valorActual":36.0,"fechaHoraUltimaLectura":"2026-11-28T00:54:02Z","ultimaRecepcion":"2026-11-28T00:54:05.307892Z","ahora":"2026-11
 PASS  El valor actual sigue siendo el último válido (36)
 PASS  Vuelta a valores normales (29 °C) (HTTP 201)
-        {"id":97,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:56:01Z","variable":"temperatura","unidad":"°C","valor":29.0,"anomala":false,"motivoAnomalia":null}
+        {"id":397,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:54:06Z","variable":"temperatura","unidad":"°C","valor":29.0,"anomala":false,"motivoAnomalia":null}
 PASS  Alertas tras normalizar (HTTP 200)
-        [{"id":18,"dispositivoId":1,"lecturaId":97,"tipo":"NORMALIZACION","severidad":"INFO","mensaje":"Valores normales de nuevo: 29.0 °C","fechaHora":"2026-11-18T22:56:01.665766Z"},{"id":17,"dispositivoId":1,"lecturaId":96,"tipo":"ANOMALIA","severidad":"ADVERTENCIA","mensaje":"Lectura anómala (S
+        [{"id":63,"dispositivoId":1,"lecturaId":397,"tipo":"NORMALIZACION","severidad":"INFO","mensaje":"Valores normales de nuevo: 29.0 °C","fechaHora":"2026-11-28T00:54:06.353898Z"},{"id":62,"dispositivoId":1,"lecturaId":396,"tipo":"ANOMALIA","severidad":"ADVERTENCIA","mensaje":"Lectura anómala 
 PASS  Existe NORMALIZACION
 PASS  Existe ANOMALIA
 --- Positivas: historial y análisis
 PASS  Historial de la última hora (HTTP 200)
-        [{"id":1,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:48:02.440Z","variable":"temperatura","unidad":"°C","valor":24.08,"anomala":false,"motivoAnomalia":null},{"id":2,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:48:08.149Z","variable":"temperatura","unidad":"°C","val
+        [{"id":1,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:16:54.612Z","variable":"temperatura","unidad":"°C","valor":23.91,"anomala":false,"motivoAnomalia":null},{"id":2,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:16:59.919Z","variable":"temperatura","unidad":"°C","val
 PASS  El historial incluye la lectura anómala
 PASS  Historial con rango explícito (HTTP 200)
-        [{"id":48,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:52:26.205Z","variable":"temperatura","unidad":"°C","valor":24.47,"anomala":false,"motivoAnomalia":null},{"id":49,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:52:31.235Z","variable":"temperatura","unidad":"°C","v
+        [{"id":348,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:48:54.866Z","variable":"temperatura","unidad":"°C","valor":23.7,"anomala":false,"motivoAnomalia":null},{"id":349,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:48:59.886Z","variable":"temperatura","unidad":"°C","
 PASS  Resumen del rango (HTTP 200)
-        {"desde":"2026-11-18T22:46:01Z","hasta":"2026-11-18T22:57:01Z","lecturas":97,"anomalas":7,"minimo":23.84,"maximo":36.0,"promedio":24.99}
+        {"desde":"2026-11-28T00:44:07Z","hasta":"2026-11-28T00:55:07Z","lecturas":101,"anomalas":6,"minimo":23.36,"maximo":38.0,"promedio":27.49}
 PASS  El resumen cuenta anomalías
 --- Positivas: desconexión y reconexión
         esperando 25 s sin enviar datos (límite de desconexión: 15 s)...
 PASS  Estado sin lecturas (HTTP 200)
-        {"dispositivo":"sensor-lab-01","nombre":"Sensor de temperatura del laboratorio","variable":"temperatura","unidad":"°C","conexion":"DESCONECTADO","nivel":"OK","valorActual":29.0,"fechaHoraUltimaLectura":"2026-11-18T22:56:01Z","ultimaRecepcion":"2026-11-18T22:56:01.665766Z","ahora":"2026-11-1
+        {"dispositivo":"sensor-lab-01","nombre":"Sensor de temperatura del laboratorio","variable":"temperatura","unidad":"°C","conexion":"DESCONECTADO","nivel":"OK","valorActual":29.0,"fechaHoraUltimaLectura":"2026-11-28T00:54:06Z","ultimaRecepcion":"2026-11-28T00:54:06.353898Z","ahora":"2026-11-2
 PASS  La conexión pasa a DESCONECTADO
 PASS  Alertas tras el silencio (HTTP 200)
-        [{"id":19,"dispositivoId":1,"lecturaId":null,"tipo":"DESCONEXION","severidad":"CRITICA","mensaje":"Sin lecturas desde hace 16 s (límite 15 s)","fechaHora":"2026-11-18T22:56:17.994404Z"},{"id":18,"dispositivoId":1,"lecturaId":97,"tipo":"NORMALIZACION","severidad":"INFO","mensaje":"Valores no
+        [{"id":64,"dispositivoId":1,"lecturaId":null,"tipo":"DESCONEXION","severidad":"CRITICA","mensaje":"Sin lecturas desde hace 19 s (límite 15 s)","fechaHora":"2026-11-28T00:54:25.939564Z"},{"id":63,"dispositivoId":1,"lecturaId":397,"tipo":"NORMALIZACION","severidad":"INFO","mensaje":"Valores n
 PASS  Existe una alerta DESCONEXION
 PASS  El dispositivo vuelve a enviar (29.5 °C) (HTTP 201)
-        {"id":98,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-18T22:56:27Z","variable":"temperatura","unidad":"°C","valor":29.5,"anomala":false,"motivoAnomalia":null}
+        {"id":398,"dispositivo":"sensor-lab-01","fechaHora":"2026-11-28T00:54:34Z","variable":"temperatura","unidad":"°C","valor":29.5,"anomala":false,"motivoAnomalia":null}
 PASS  Estado tras reconectar (HTTP 200)
-        {"dispositivo":"sensor-lab-01","nombre":"Sensor de temperatura del laboratorio","variable":"temperatura","unidad":"°C","conexion":"CONECTADO","nivel":"OK","valorActual":29.5,"fechaHoraUltimaLectura":"2026-11-18T22:56:27Z","ultimaRecepcion":"2026-11-18T22:56:27.163517Z","ahora":"2026-11-18T2
+        {"dispositivo":"sensor-lab-01","nombre":"Sensor de temperatura del laboratorio","variable":"temperatura","unidad":"°C","conexion":"CONECTADO","nivel":"OK","valorActual":29.5,"fechaHoraUltimaLectura":"2026-11-28T00:54:34Z","ultimaRecepcion":"2026-11-28T00:54:35.257098Z","ahora":"2026-11-28T0
 PASS  La conexión vuelve a CONECTADO
 PASS  Alertas tras reconectar (HTTP 200)
-        [{"id":20,"dispositivoId":1,"lecturaId":98,"tipo":"RECONEXION","severidad":"INFO","mensaje":"El dispositivo volvió a enviar lecturas","fechaHora":"2026-11-18T22:56:27.163517Z"},{"id":19,"dispositivoId":1,"lecturaId":null,"tipo":"DESCONEXION","severidad":"CRITICA","mensaje":"Sin lecturas des
+        [{"id":65,"dispositivoId":1,"lecturaId":398,"tipo":"RECONEXION","severidad":"INFO","mensaje":"El dispositivo volvió a enviar lecturas","fechaHora":"2026-11-28T00:54:35.257098Z"},{"id":64,"dispositivoId":1,"lecturaId":null,"tipo":"DESCONEXION","severidad":"CRITICA","mensaje":"Sin lecturas de
 PASS  Existe una alerta RECONEXION
 --- Negativas: seguridad
 PASS  Ingesta sin API key (HTTP 401)
@@ -71,32 +71,33 @@ PASS  Ingesta con API key incorrecta (HTTP 401)
         {"status":401,"error":"Unauthorized","mensaje":"API key ausente o inválida","ruta":"/api/iot/lecturas"}
 PASS  La autenticación precede a la validación (cuerpo vacío, sin clave) (HTTP 401)
         {"status":401,"error":"Unauthorized","mensaje":"API key ausente o inválida","ruta":"/api/iot/lecturas"}
-SKIP  Ingesta por el puerto público del frontend (no accesible en http://localhost:4200)
+PASS  La ingesta NO se expone por el frontend (HTTP 403)
+PASS  Consulta del estado sin credenciales (HTTP 401)
 --- Negativas: validación
 PASS  Cuerpo vacío con clave válida (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.397375Z","status":400,"error":"Bad Request","mensaje":"Datos de entrada inválidos","ruta":"/api/iot/lecturas","campos":{"variable":"La variable es obligatoria","valor":"El valor es obligatorio","unidad":"La unidad es obligatoria","dispositivo":"El dispositi
+        {"timestamp":"2026-11-28T00:54:38.337512Z","status":400,"error":"Bad Request","mensaje":"Datos de entrada inválidos","ruta":"/api/iot/lecturas","campos":{"unidad":"La unidad es obligatoria","variable":"La variable es obligatoria","valor":"El valor es obligatorio","dispositivo":"El dispositi
 PASS  Valor no numérico (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.430030Z","status":400,"error":"Bad Request","mensaje":"Cuerpo JSON ausente, mal formado o con valores/campos no reconocidos. Estados válidos: REGISTRADO, EN_PROGRESO, EN_REVISION, ENTREGADO","ruta":"/api/iot/lecturas","campos":null}
+        {"timestamp":"2026-11-28T00:54:38.687260Z","status":400,"error":"Bad Request","mensaje":"Cuerpo JSON ausente, mal formado o con valores/campos no reconocidos. Estados válidos: REGISTRADO, EN_PROGRESO, EN_REVISION, ENTREGADO","ruta":"/api/iot/lecturas","campos":null}
 PASS  Campo desconocido (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.457940Z","status":400,"error":"Bad Request","mensaje":"Cuerpo JSON ausente, mal formado o con valores/campos no reconocidos. Estados válidos: REGISTRADO, EN_PROGRESO, EN_REVISION, ENTREGADO","ruta":"/api/iot/lecturas","campos":null}
+        {"timestamp":"2026-11-28T00:54:39.027592Z","status":400,"error":"Bad Request","mensaje":"Cuerpo JSON ausente, mal formado o con valores/campos no reconocidos. Estados válidos: REGISTRADO, EN_PROGRESO, EN_REVISION, ENTREGADO","ruta":"/api/iot/lecturas","campos":null}
 PASS  Unidad distinta a la del dispositivo (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.489757Z","status":400,"error":"Bad Request","mensaje":"La unidad debe ser '°C' para este dispositivo","ruta":"/api/iot/lecturas","campos":null}
+        {"timestamp":"2026-11-28T00:54:39.476987Z","status":400,"error":"Bad Request","mensaje":"La unidad debe ser '°C' para este dispositivo","ruta":"/api/iot/lecturas","campos":null}
 PASS  Variable distinta a la del dispositivo (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.519815Z","status":400,"error":"Bad Request","mensaje":"La variable debe ser 'temperatura' para este dispositivo","ruta":"/api/iot/lecturas","campos":null}
+        {"timestamp":"2026-11-28T00:54:39.841096Z","status":400,"error":"Bad Request","mensaje":"La variable debe ser 'temperatura' para este dispositivo","ruta":"/api/iot/lecturas","campos":null}
 PASS  Fecha-hora en el futuro (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.551149Z","status":400,"error":"Bad Request","mensaje":"La fecha-hora está en el futuro","ruta":"/api/iot/lecturas","campos":null}
+        {"timestamp":"2026-11-28T00:54:40.273807Z","status":400,"error":"Bad Request","mensaje":"La fecha-hora está en el futuro","ruta":"/api/iot/lecturas","campos":null}
 PASS  Fecha-hora con más de 24 h (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.581656Z","status":400,"error":"Bad Request","mensaje":"La fecha-hora tiene más de 24 horas de antigüedad","ruta":"/api/iot/lecturas","campos":null}
+        {"timestamp":"2026-11-28T00:54:40.689372Z","status":400,"error":"Bad Request","mensaje":"La fecha-hora tiene más de 24 horas de antigüedad","ruta":"/api/iot/lecturas","campos":null}
 PASS  Dispositivo no registrado (HTTP 404)
-        {"timestamp":"2026-11-18T22:56:27.608260Z","status":404,"error":"Not Found","mensaje":"El dispositivo 'otro' no está registrado","ruta":"/api/iot/lecturas","campos":null}
+        {"timestamp":"2026-11-28T00:54:41.027317Z","status":404,"error":"Not Found","mensaje":"El dispositivo 'otro' no está registrado","ruta":"/api/iot/lecturas","campos":null}
 PASS  Parámetro 'desde' con formato inválido (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.634407Z","status":400,"error":"Bad Request","mensaje":"Valor inválido para el parámetro 'desde'","ruta":"/api/iot/lecturas","campos":null}
+        {"timestamp":"2026-11-28T00:54:41.440616Z","status":400,"error":"Bad Request","mensaje":"Valor inválido para el parámetro 'desde'","ruta":"/api/iot/lecturas","campos":null}
 PASS  Rango invertido (desde > hasta) (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.658514Z","status":400,"error":"Bad Request","mensaje":"'desde' no puede ser posterior a 'hasta'","ruta":"/api/iot/lecturas","campos":null}
+        {"timestamp":"2026-11-28T00:54:41.857257Z","status":400,"error":"Bad Request","mensaje":"'desde' no puede ser posterior a 'hasta'","ruta":"/api/iot/lecturas","campos":null}
 PASS  Límite fuera de rango (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.679553Z","status":400,"error":"Bad Request","mensaje":"El límite debe estar entre 1 y 2000","ruta":"/api/iot/lecturas","campos":null}
+        {"timestamp":"2026-11-28T00:54:42.276002Z","status":400,"error":"Bad Request","mensaje":"El límite debe estar entre 1 y 2000","ruta":"/api/iot/lecturas","campos":null}
 PASS  Límite de alertas fuera de rango (HTTP 400)
-        {"timestamp":"2026-11-18T22:56:27.702754Z","status":400,"error":"Bad Request","mensaje":"El límite debe estar entre 1 y 200","ruta":"/api/iot/alertas","campos":null}
-PASS  Método no permitido (DELETE en /estado) (HTTP 405)
-        {"timestamp":"2026-11-18T22:56:27.723203Z","status":405,"error":"Method Not Allowed","mensaje":"Método no permitido en esta ruta","ruta":"/api/iot/estado","campos":null}
-== Resultado: 54 correctas, 0 fallidas ==
+        {"timestamp":"2026-11-28T00:54:42.694258Z","status":400,"error":"Bad Request","mensaje":"El límite debe estar entre 1 y 200","ruta":"/api/iot/alertas","campos":null}
+PASS  Método no declarado se deniega (DELETE en /estado) (HTTP 403)
+        {"status":403,"error":"Forbidden","mensaje":"No tiene permiso para esta operación","ruta":"/api/iot/estado"}
+== Resultado: 56 correctas, 0 fallidas ==

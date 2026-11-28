@@ -29,7 +29,7 @@ GET /api/proyectos (lista inicial):
 "id":4,"titulo":"Clasificador Iris con KNN"	"estado":"ENTREGADO"
 
 ## Alta (formulario) POST /api/proyectos
-HTTP/1.1 201 
+HTTP/1.1 201
 Location: /api/proyectos/5
 {"id":5,"titulo":"Evidencia frontend P05"
 
@@ -50,7 +50,7 @@ Salto REGISTRADO->ENTREGADO:
 
 ## Persistencia: detalle releído (GET /api/proyectos/5) y fila en PostgreSQL
 "estado":"ENTREGADO","estadosPermitidos":[]
- id |             titulo              |   estado    
+ id |             titulo              |   estado
 ----+---------------------------------+-------------
   1 | Sistema de tutorías entre pares | EN_PROGRESO
   2 | Control de ventas diarias       | REGISTRADO
@@ -58,4 +58,3 @@ Salto REGISTRADO->ENTREGADO:
   4 | Clasificador Iris con KNN       | ENTREGADO
   5 | Evidencia frontend P05          | ENTREGADO
 (5 rows)
-

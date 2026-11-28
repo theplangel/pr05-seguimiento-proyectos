@@ -43,7 +43,7 @@ La contraseña por defecto es solo para uso local; se puede cambiar con `DB_PASS
 
 ```bash
 # 1) Base de datos
-psql -U postgres -c "CREATE USER proyectos WITH PASSWORD 'proyectos_local_2026';"
+psql -U postgres -c "CREATE USER proyectos WITH PASSWORD '<tu-contraseña>';"
 psql -U postgres -c "CREATE DATABASE proyectos OWNER proyectos;"
 
 # 2) Backend (Flyway migra al arrancar) -> http://localhost:8080
@@ -123,3 +123,115 @@ Guardar evidencia: `./scripts/smoke-test.sh | tee docs/evidencia-smoke.txt`.
 | Persistencia PostgreSQL | 2 | `db/migration/V1,V2`, volumen `pgdata`, paso 7 del §7 |
 | Errores y validación | 2 | `ApiExceptionHandler`, `ProyectoRequest`, casos negativos de tests y smoke |
 | Pruebas y repositorio | 2 | §6, `docs/EVIDENCIA.md`, historial de commits |
+
+---
+
+## P06 — Web 4.0: fuente IoT simulada, dashboard y datos
+
+Amplía este mismo proyecto con **un sensor de temperatura simulado** (`sensor-lab-01`, °C) que envía una lectura cada 5 s.
+Recorrido: **simulador → API Spring Boot → PostgreSQL → dashboard Angular**.
+
+### Arranque
+
+```bash
+./scripts/generar-env.sh         # P07: crea .env con secretos aleatorios (no hay contraseñas por defecto)
+docker compose up --build
+# Dashboard:  http://localhost:4200/#iot   (inicia sesión con los usuarios que imprime generar-env.sh)
+# Swagger UI: desactivado por defecto; en desarrollo: SWAGGER_ENABLED=true en .env
+```
+
+El servicio `simulador` arranca solo y recorre en ≈ 5 min **todas las reglas** (`ESCENARIO=demo`):
+normal → advertencia → crítico → normalización → lectura fuera de rango → salto brusco → desconexión → reconexión.
+Con `ESCENARIO=normal docker compose up` la temperatura se mantiene estable.
+Para provocar una desconexión: `docker compose stop simulador` (y `start` para reconectar).
+
+### API IoT
+
+| Método y ruta | Descripción | Respuestas |
+|---|---|---|
+| `POST /api/iot/lecturas` | Ingesta del dispositivo (`X-API-Key`). Cuerpo: `dispositivo`, `fechaHora` (opc.), `variable`, `unidad`, `valor` | 201 · 400 · 401 · 404 |
+| `GET /api/iot/estado` | Valor actual, nivel (`OK`/`ADVERTENCIA`/`CRITICO`) y conexión | 200 · 404 |
+| `GET /api/iot/lecturas?desde=&hasta=&limite=` | Historial cronológico (por defecto, la última hora) | 200 · 400 |
+| `GET /api/iot/resumen?desde=&hasta=` | Mínimo, máximo, promedio y anomalías | 200 · 400 |
+| `GET /api/iot/alertas?limite=` | Alertas y eventos, las más nuevas primero | 200 · 400 |
+
+Ejemplo de ingesta manual (desde la máquina anfitriona, contra el backend):
+
+```bash
+curl -i -X POST http://localhost:8080/api/iot/lecturas \
+  -H 'Content-Type: application/json' -H "X-API-Key: $IOT_API_KEY" \
+  -d '{"dispositivo":"sensor-lab-01","variable":"temperatura","unidad":"°C","valor":24.8}'
+```
+
+### Reglas de análisis
+
+| Regla | Resultado |
+|---|---|
+| Valor < −10 °C o > 80 °C | Lectura **anómala** `FUERA_DE_RANGO` (se guarda marcada, no cuenta para el nivel) |
+| Cambio > 8 °C respecto a la última lectura válida | Lectura **anómala** `SALTO_BRUSCO` |
+| ≥ 30 °C / ≥ 35 °C | Nivel `ADVERTENCIA` / `CRITICO` (alerta solo al cambiar de nivel) |
+| Más de 15 s sin lecturas | `DESCONECTADO` + alerta `DESCONEXION`; al volver, `RECONEXION` |
+
+Detalle de frecuencia, anomalías, desconexión y seguridad: [`docs/arquitectura-p06.md`](docs/arquitectura-p06.md) ·
+decisiones del equipo: [`docs/decisiones-p06.md`](docs/decisiones-p06.md) ·
+evidencia y pasos de verificación: [`docs/EVIDENCIA-P06.md`](docs/EVIDENCIA-P06.md).
+
+### Pruebas P06
+
+```bash
+cd proyectos-backend && mvn verify                       # ReglasIotTest, IotServiceTest, IotControllerTest + P05
+cd proyectos-frontend && npm ci && npx jest --ci         # servicio IoT, gráfica y dashboard
+docker compose stop simulador && ./scripts/smoke-iot.sh  # extremo a extremo contra la API real (RAPIDO=1 omite la espera de desconexión)
+```
+
+### Seguridad (resumen)
+
+Clave de dispositivo `X-API-Key` validada antes de leer el cuerpo (401) · la ingesta **no** se expone por el puerto público del frontend (Nginx responde 403) ·
+validación estricta y límites de consulta · errores sin detalles internos · contenedores sin root · la clave sale de `.env` (no versionado).
+
+---
+
+## P07 — Seguridad básica, pruebas y despliegue
+
+Se aplicó seguridad al mismo PR05: **roles, secretos, validación, configuración segura**, pruebas y guía de despliegue.
+
+### Arranque (desde cero, sin credenciales en el repositorio)
+
+```bash
+./scripts/generar-env.sh      # crea .env con secretos aleatorios e imprime los usuarios (lider / integrante)
+docker compose up --build -d
+# Aplicación: http://localhost:4200  →  inicia sesión
+```
+
+| Rol | Puede |
+|---|---|
+| `LIDER` | Consultar, crear proyectos y cambiar estados |
+| `INTEGRANTE` | Solo consultar (proyectos y dashboard IoT) |
+| Dispositivo IoT | Enviar lecturas con su `X-API-Key` (no es un usuario) |
+
+Todo lo no declarado se **deniega**. Autenticación HTTP Basic sin estado (sin cookies); la credencial vive solo en memoria del navegador; freno a la fuerza bruta: 5 fallos en 60 s → `429`.
+
+### Controles de configuración
+
+PostgreSQL sin publicar · backend solo en `127.0.0.1:8080` · Swagger desactivado (`SWAGGER_ENABLED=true` solo en desarrollo) · cabeceras de seguridad y CSP en Nginx · contenedores sin root · errores sin trazas · sin contraseñas por defecto (el backend no arranca sin contraseñas de ≥ 12 caracteres).
+
+### Pruebas y auditoría
+
+```bash
+cd proyectos-backend && mvn verify                  # incluye SeguridadRolesTest, LimitadorIntentosFilterTest, UsuarioInicializadorTest…
+cd proyectos-frontend && npm ci && npx jest --ci    # 64 pruebas (login, interceptor, UI por rol, dashboard…)
+./scripts/e2e-p07.sh | tee docs/evidencia-e2e-p07.txt          # CP-01/02, CN-01/02/03 y E2E-01 contra el sistema real
+./scripts/auditoria-seguridad.sh | tee docs/evidencia-auditoria.txt   # secretos, configuración y dependencias
+```
+
+### Documentación P07
+
+| Documento | Contenido |
+|---|---|
+| [`docs/seguridad-owasp-p07.md`](docs/seguridad-owasp-p07.md) | Lista OWASP Top 10:2021 aplicada, validación y datos sensibles |
+| [`docs/defectos-p07.md`](docs/defectos-p07.md) | Registro de defectos y correcciones (DEF-01 a DEF-11) |
+| [`docs/pruebas-p07.md`](docs/pruebas-p07.md) | Casos positivos, negativos y E2E con su estado de ejecución |
+| [`docs/despliegue.md`](docs/despliegue.md) | Guía reproducible de despliegue, operación y reversión |
+| [`docs/bitacora-contribucion.md`](docs/bitacora-contribucion.md) | Evidencia individual (commits, bitácora, defensa) |
+| [`docs/evidencia-auditoria-p07.txt`](docs/evidencia-auditoria-p07.txt) | Auditoría antes y después de las correcciones |
+

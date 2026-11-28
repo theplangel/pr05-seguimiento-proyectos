@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { AuthService } from '../core/auth.service';
 import { ApiError, ESTADOS, Estado, Proyecto } from '../core/models';
 import { ProyectosService } from '../core/proyectos.service';
 
@@ -25,6 +26,11 @@ export class ProyectoDetalleComponent implements OnInit {
   private id = 0;
   private readonly route = inject(ActivatedRoute);
   private readonly servicio = inject(ProyectosService);
+  private readonly auth = inject(AuthService);
+
+  get puedeEditar(): boolean {
+    return this.auth.esLider();
+  }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {

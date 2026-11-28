@@ -1,8 +1,14 @@
-.env
-.env.*
-!.env.example
-node_modules/
-dist/
+# Artefactos de compilación
 target/
-__pycache__/
-*.py[cod]
+dist/
+.angular/
+node_modules/
+# IDE / herramientas
+.vscode/
+.idea/
+*.iml
+# Entorno local
+.env
+
+# P07: credenciales locales (la plantilla db.properties.example sí se versiona)
+src/main/resources/db.properties

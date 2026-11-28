@@ -7,9 +7,14 @@
 # Guarda la evidencia:  ./scripts/smoke-iot.sh | tee docs/evidencia-smoke-iot.txt
 # Requiere bash, curl y date de GNU (Linux, WSL o Git Bash).
 set -u
+cd "$(dirname "$0")/.."
+# P07: credenciales desde .env (generado con scripts/generar-env.sh) o variables de entorno.
+[ -f .env ] && { set -a; . ./.env; set +a; }
 BASE="${1:-http://localhost:8080}"
 FRONT="${FRONTEND:-http://localhost:4200}"
-KEY="${IOT_API_KEY:-iot_local_2026}"
+KEY="${IOT_API_KEY:-}"
+USUARIO="${APP_INTEGRANTE_USUARIO:-integrante}"; CLAVE_USUARIO="${APP_INTEGRANTE_PASSWORD:-}"
+[ -n "$KEY" ] && [ -n "$CLAVE_USUARIO" ] || { echo "Faltan IOT_API_KEY y APP_INTEGRANTE_PASSWORD (define .env con ./scripts/generar-env.sh)"; exit 2; }
 DEV="sensor-lab-01"
 OK=0; FAIL=0
 CUERPO=/tmp/smoke_iot_body
@@ -28,14 +33,18 @@ http() {
   local metodo="$1" ruta="$2" cuerpo="${3:-}" clave="${4-$KEY}"
   local args=(-s -o "$CUERPO" -w '%{http_code}' -X "$metodo" "$BASE$ruta")
   [ -n "$cuerpo" ] && args+=(-H 'Content-Type: application/json' -d "$cuerpo")
-  [ -n "$clave" ] && args+=(-H "X-API-Key: $clave")
+  if [ "$metodo" = "POST" ] && [ "$ruta" = "/api/iot/lecturas" ]; then
+    [ -n "$clave" ] && args+=(-H "X-API-Key: $clave")          # el dispositivo se autentica con su clave
+  elif [ "$ruta" != "/api/health" ]; then
+    args+=(-u "$USUARIO:$CLAVE_USUARIO")                        # P07: consultas con usuario (rol INTEGRANTE basta)
+  fi
   CODIGO="$(curl "${args[@]}")"
 }
 
 # lectura <valor> [fechaHora]
 lectura() {
   local fecha="${2:-$(ahora)}"
-  printf '{"dispositivo":"%s","fechaHora":"%s","variable":"temperatura","unidad":"°C","valor":%s}' "$DEV" "$fecha" "$1"
+  printf '{"dispositivo":"%s","fechaHora":"%s","variable":"temperatura","unidad":"\\u00b0C","valor":%s}' "$DEV" "$fecha" "$1"
 }
 
 # espera <código> <descripción> <método> <ruta> [cuerpo] [clave]
@@ -51,7 +60,7 @@ contiene() { # <descripción> <texto>
   grep -q "$2" "$CUERPO"; resultado "$1" $? "(no aparece '$2' en: $(head -c 160 "$CUERPO"))"
 }
 
-valor_actual() { curl -s "$BASE/api/iot/estado" | grep -o '"valorActual":[-0-9.]*' | cut -d: -f2; }
+valor_actual() { curl -s -u "$USUARIO:$CLAVE_USUARIO" "$BASE/api/iot/estado" | grep -o '"valorActual":[-0-9.]*' | cut -d: -f2; }
 
 # Lleva la última lectura válida a un objetivo en pasos de <= 6 (el salto máximo permitido es 8).
 ir_a() {
@@ -130,20 +139,23 @@ FCODE="$(curl -s -o /dev/null -m 5 -w '%{http_code}' -X POST -H 'Content-Type: a
 if [ "$FCODE" = "000" ] || [ -z "$FCODE" ]; then echo "SKIP  Ingesta por el puerto público del frontend (no accesible en $FRONT)"
 else resultado "La ingesta NO se expone por el frontend (HTTP $FCODE)" $([ "$FCODE" = "403" ] && echo 0 || echo 1); fi
 
+CODIGO_SIN_AUTH="$(curl -s -o /dev/null -w '%{http_code}' "$BASE/api/iot/estado")"
+resultado "Consulta del estado sin credenciales (HTTP $CODIGO_SIN_AUTH)" $([ "$CODIGO_SIN_AUTH" = "401" ] && echo 0 || echo 1)
+
 echo "--- Negativas: validación"
 espera 400 "Cuerpo vacío con clave válida" POST /api/iot/lecturas '{}'
-espera 400 "Valor no numérico" POST /api/iot/lecturas '{"dispositivo":"sensor-lab-01","variable":"temperatura","unidad":"°C","valor":"abc"}'
-espera 400 "Campo desconocido" POST /api/iot/lecturas '{"dispositivo":"sensor-lab-01","variable":"temperatura","unidad":"°C","valor":20,"x":1}'
-espera 400 "Unidad distinta a la del dispositivo" POST /api/iot/lecturas '{"dispositivo":"sensor-lab-01","variable":"temperatura","unidad":"°F","valor":20}'
-espera 400 "Variable distinta a la del dispositivo" POST /api/iot/lecturas '{"dispositivo":"sensor-lab-01","variable":"humedad","unidad":"°C","valor":20}'
+espera 400 "Valor no numérico" POST /api/iot/lecturas '{"dispositivo":"sensor-lab-01","variable":"temperatura","unidad":"\u00b0C","valor":"abc"}'
+espera 400 "Campo desconocido" POST /api/iot/lecturas '{"dispositivo":"sensor-lab-01","variable":"temperatura","unidad":"\u00b0C","valor":20,"x":1}'
+espera 400 "Unidad distinta a la del dispositivo" POST /api/iot/lecturas '{"dispositivo":"sensor-lab-01","variable":"temperatura","unidad":"\u00b0F","valor":20}'
+espera 400 "Variable distinta a la del dispositivo" POST /api/iot/lecturas '{"dispositivo":"sensor-lab-01","variable":"humedad","unidad":"\u00b0C","valor":20}'
 espera 400 "Fecha-hora en el futuro" POST /api/iot/lecturas "$(lectura 25 "$(ahora_mas '+10 minutes')")"
 espera 400 "Fecha-hora con más de 24 h" POST /api/iot/lecturas "$(lectura 25 "$(ahora_mas '-3 days')")"
-espera 404 "Dispositivo no registrado" POST /api/iot/lecturas '{"dispositivo":"otro","variable":"temperatura","unidad":"°C","valor":20}'
+espera 404 "Dispositivo no registrado" POST /api/iot/lecturas '{"dispositivo":"otro","variable":"temperatura","unidad":"\u00b0C","valor":20}'
 espera 400 "Parámetro 'desde' con formato inválido" GET "/api/iot/lecturas?desde=no-es-fecha"
 espera 400 "Rango invertido (desde > hasta)" GET "/api/iot/lecturas?desde=$HASTA&hasta=$DESDE"
 espera 400 "Límite fuera de rango" GET "/api/iot/lecturas?limite=0"
 espera 400 "Límite de alertas fuera de rango" GET "/api/iot/alertas?limite=999"
-espera 405 "Método no permitido (DELETE en /estado)" DELETE /api/iot/estado
+espera 403 "Método no declarado se deniega (DELETE en /estado)" DELETE /api/iot/estado
 
 echo "== Resultado: $OK correctas, $FAIL fallidas =="
 [ "$FAIL" -eq 0 ]

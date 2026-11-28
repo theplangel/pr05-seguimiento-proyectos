@@ -1,4 +1,6 @@
+@if (puedeEditar) {
 <app-proyecto-form (creado)="alCrear($event)" />
+}
 
 @if (mensajeOk) {
   <p class="banner ok" role="status" data-testid="ok">
@@ -55,7 +57,9 @@
               <td>{{ p.asesor }}</td>
               <td><span class="estado" [attr.data-estado]="p.estado">{{ etiqueta(p.estado) }}</span></td>
               <td class="acciones">
-                @if (procesandoId === p.id) {
+                @if (!puedeEditar) {
+                  <small data-testid="solo-lectura">Solo lectura</small>
+                } @else if (procesandoId === p.id) {
                   <small data-testid="procesando"><span class="spinner oscuro" aria-hidden="true"></span> Actualizando…</small>
                 } @else {
                   @for (d of p.estadosPermitidos; track d) {

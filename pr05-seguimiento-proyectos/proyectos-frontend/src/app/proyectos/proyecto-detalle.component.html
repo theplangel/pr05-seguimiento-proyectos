@@ -37,12 +37,16 @@
     </dl>
 
     <footer class="acciones">
-      @if (cambiando) {
-        <small data-testid="procesando"><span class="spinner oscuro" aria-hidden="true"></span> Actualizando estado…</small>
+      @if (puedeEditar) {
+        @if (cambiando) {
+          <small data-testid="procesando"><span class="spinner oscuro" aria-hidden="true"></span> Actualizando estado…</small>
+        } @else {
+          @for (d of proyecto.estadosPermitidos; track d) {
+            <button type="button" (click)="cambiar(d)" [attr.data-testid]="'mover-' + d">Mover a {{ etiqueta(d) }}</button>
+          } @empty { <small class="tenue" data-testid="final">El proyecto está en su estado final; no admite más cambios.</small> }
+        }
       } @else {
-        @for (d of proyecto.estadosPermitidos; track d) {
-          <button type="button" (click)="cambiar(d)" [attr.data-testid]="'mover-' + d">Mover a {{ etiqueta(d) }}</button>
-        } @empty { <small class="tenue" data-testid="final">El proyecto está en su estado final; no admite más cambios.</small> }
+        <small data-testid="solo-lectura">Solo lectura</small>
       }
     </footer>
   </article>

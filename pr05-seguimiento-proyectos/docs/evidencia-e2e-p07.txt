@@ -1,0 +1,41 @@
+== P07 E2E de seguridad contra http://localhost:8080  (2026-11-28T00:52:16Z) ==
+--- Pruebas positivas
+PASS  [CP-01] LIDER inicia sesión (valida credenciales) (HTTP 200)
+PASS  [CP-01] La respuesta identifica el rol LIDER
+PASS  [CP-01] LIDER consulta los proyectos (HTTP 200)
+PASS  [CP-02] LIDER registra un proyecto (HTTP 201)
+PASS  [CP-02] LIDER avanza REGISTRADO -> EN_PROGRESO (HTTP 200)
+PASS  [CP-02] El estado quedó EN_PROGRESO
+--- Pruebas negativas
+PASS  [CN-01] Consulta sin credenciales (HTTP 401)
+PASS  [CN-01] Contraseña incorrecta (HTTP 401)
+PASS  [CN-02] INTEGRANTE intenta cambiar el estado (HTTP 403)
+PASS  [CN-02] INTEGRANTE intenta crear un proyecto (HTTP 403)
+PASS  [CN-02] El estado NO cambió tras el intento prohibido (HTTP 200)
+PASS  [CN-02] Sigue EN_PROGRESO
+PASS  [CN-03] Fuerza bruta: el 6.º intento fallido se frena (HTTP 429)
+PASS  [CN-03] Un usuario legítimo no se ve afectado (HTTP 200)
+--- E2E-01: flujo completo con roles, IoT y configuración segura
+PASS  [E2E-01] INTEGRANTE ve el proyecto creado por el LIDER (HTTP 200)
+PASS  [E2E-01] El listado incluye el proyecto nuevo
+PASS  [E2E-01] LIDER avanza EN_PROGRESO -> EN_REVISION (HTTP 200)
+PASS  [E2E-01] Transición inválida rechazada (EN_REVISION -> REGISTRADO) (HTTP 409)
+PASS  [E2E-01] El dispositivo envía una lectura con su API key (HTTP 201)
+PASS  [E2E-01] Ingesta sin API key rechazada (HTTP 401)
+PASS  [E2E-01] INTEGRANTE consulta el estado IoT (HTTP 200)
+PASS  [E2E-01] El estado IoT identifica al dispositivo
+PASS  [E2E-01] Estado IoT sin credenciales (HTTP 401)
+PASS  [E2E-01] Salud pública sin credenciales (HTTP 200)
+PASS  [E2E-01] Swagger UI desactivado por defecto (HTTP 404)
+PASS  [E2E-01] Actuator no expone 'env' (solo health) (HTTP 403)
+PASS  [E2E-01] Los errores no revelan detalles internos (HTTP 400)
+PASS  [E2E-01] El cuerpo de error NO contiene trazas
+--- E2E-01: configuración segura del frontend y la red
+PASS  [E2E-01] Frontend envía la cabecera 'X-Content-Type-Options: nosniff'
+PASS  [E2E-01] Frontend envía la cabecera 'X-Frame-Options: DENY'
+PASS  [E2E-01] Frontend envía la cabecera 'Content-Security-Policy:'
+PASS  [E2E-01] Frontend envía la cabecera 'Referrer-Policy:'
+PASS  [E2E-01] El frontend no revela la versión del servidor
+PASS  [E2E-01] La ingesta IoT NO se expone por el puerto público (HTTP 403)
+PASS  [E2E-01] PostgreSQL no está publicado por este Compose
+== Resultado: 35 correctas, 0 fallidas ==

@@ -22,8 +22,11 @@ public class ApiKeyFilter extends OncePerRequestFilter {
 
     private final byte[] esperada;
 
-    public ApiKeyFilter(@Value("${iot.api-key}") String apiKey) {
+    public ApiKeyFilter(@Value("${iot.api-key:}") String apiKey) {
         this.esperada = apiKey.getBytes(StandardCharsets.UTF_8);
+        if (this.esperada.length == 0) {
+            logger.warn("IOT_API_KEY no está definida: la ingesta IoT rechazará todas las lecturas");
+        }
     }
 
     @Override
@@ -35,8 +38,10 @@ public class ApiKeyFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
         throws ServletException, IOException {
         String recibida = request.getHeader(CABECERA);
+        // Falla cerrado: sin clave configurada (IOT_API_KEY vacía) NADIE puede ingerir datos.
         // Comparación en tiempo constante para no filtrar información por temporización.
-        if (recibida == null || !MessageDigest.isEqual(recibida.getBytes(StandardCharsets.UTF_8), esperada)) {
+        if (esperada.length == 0 || recibida == null
+            || !MessageDigest.isEqual(recibida.getBytes(StandardCharsets.UTF_8), esperada)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json;charset=UTF-8");
             response.getWriter().write("{\"status\":401,\"error\":\"Unauthorized\","

@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AuthService } from '../core/auth.service';
 import { provideRouter } from '@angular/router';
 import { Proyecto } from '../core/models';
 import { ProyectosComponent } from './proyectos.component';
@@ -29,7 +30,12 @@ describe('ProyectosComponent (flujo de usuario Angular → API)', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [ProyectosComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: AuthService, useValue: { esLider: () => true } },
+      ],
     });
     fixture = TestBed.createComponent(ProyectosComponent);
     http = TestBed.inject(HttpTestingController);
@@ -183,5 +189,30 @@ describe('ProyectosComponent (flujo de usuario Angular → API)', () => {
     http.expectOne('/api/proyectos').flush([p({ estado: 'ENTREGADO', estadosPermitidos: [] })]);
     fixture.detectChanges();
     expect(el().textContent).toContain('Estado final');
+  });
+});
+
+describe('ProyectosComponent con rol INTEGRANTE (solo lectura)', () => {
+  it('no muestra el formulario ni los botones de cambio de estado', () => {
+    TestBed.configureTestingModule({
+      imports: [ProyectosComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: AuthService, useValue: { esLider: () => false } },
+      ],
+    });
+    const fixture = TestBed.createComponent(ProyectosComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http.expectOne('/api/proyectos').flush([p()]);
+    fixture.detectChanges();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('[data-testid="form-proyecto"]')).toBeNull();
+    expect(el.querySelector('[data-testid="mover-EN_PROGRESO"]')).toBeNull();
+    expect(el.querySelector('[data-testid="solo-lectura"]')).not.toBeNull();
+    expect(el.textContent).toContain('Tutorías'); // sí puede consultar
+    http.verify();
   });
 });

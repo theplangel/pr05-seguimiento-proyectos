@@ -22,7 +22,7 @@ import urllib.request
 from datetime import datetime, timezone
 
 API_URL = os.environ.get("API_URL", "http://localhost:8080").rstrip("/")
-API_KEY = os.environ.get("IOT_API_KEY", "iot_local_2026")
+API_KEY = os.environ.get("IOT_API_KEY", "")
 DISPOSITIVO = os.environ.get("DISPOSITIVO", "sensor-lab-01")
 VARIABLE = os.environ.get("VARIABLE", "temperatura")
 UNIDAD = os.environ.get("UNIDAD", "°C")
@@ -91,6 +91,9 @@ def enviar(valor):
 
 
 def main():
+    if not API_KEY:
+        print("[sim] Falta IOT_API_KEY (defínela en .env); sin clave la API rechaza las lecturas", flush=True)
+        return 2
     if SEMILLA:
         random.seed(int(SEMILLA))
     signal.signal(signal.SIGTERM, _salir)

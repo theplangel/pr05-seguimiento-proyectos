@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
+import { AuthService } from '../core/auth.service';
 import { Proyecto } from '../core/models';
 import { ProyectoDetalleComponent } from './proyecto-detalle.component';
 
@@ -15,6 +16,7 @@ const p = (o: Partial<Proyecto> = {}): Proyecto => ({
 describe('ProyectoDetalleComponent (GET /api/proyectos/{id} y cambio de estado)', () => {
   let harness: RouterTestingHarness;
   let http: HttpTestingController;
+  let esLider: boolean;
   const el = () => harness.routeNativeElement as HTMLElement;
   const q = (id: string) => el().querySelector(`[data-testid="${id}"]`) as HTMLElement | null;
 
@@ -23,9 +25,11 @@ describe('ProyectoDetalleComponent (GET /api/proyectos/{id} y cambio de estado)'
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        { provide: AuthService, useValue: { esLider: () => esLider } },
         provideRouter([{ path: 'proyectos/:id', component: ProyectoDetalleComponent }]),
       ],
     });
+    esLider = true;
     http = TestBed.inject(HttpTestingController);
     harness = await RouterTestingHarness.create();
   });
@@ -34,6 +38,16 @@ describe('ProyectoDetalleComponent (GET /api/proyectos/{id} y cambio de estado)'
   async function abrir(url = '/proyectos/3') {
     await harness.navigateByUrl(url, ProyectoDetalleComponent);
   }
+
+  it('un INTEGRANTE puede consultar el detalle, pero no cambiar el estado', async () => {
+    esLider = false;
+    await abrir();
+    http.expectOne('/api/proyectos/3').flush(p());
+    harness.detectChanges();
+
+    expect(q('solo-lectura')).not.toBeNull();
+    expect(q('mover-EN_REVISION')).toBeNull();
+  });
 
   it('muestra el indicador de carga y luego todos los datos del proyecto', async () => {
     await abrir();

@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../core/auth.service';
 import { ApiError, ESTADOS, Estado, Proyecto } from '../core/models';
 import { ProyectosService } from '../core/proyectos.service';
 import { ProyectoFormComponent } from './proyecto-form.component';
@@ -25,6 +26,12 @@ export class ProyectosComponent implements OnInit {
   ultimoCreadoId: number | null = null;
 
   private readonly servicio = inject(ProyectosService);
+  private readonly auth = inject(AuthService);
+
+  /** Solo el LIDER ve el formulario y los botones de cambio de estado (el servidor responde 403 al resto). */
+  get puedeEditar(): boolean {
+    return this.auth.esLider();
+  }
 
   ngOnInit(): void {
     this.cargar();

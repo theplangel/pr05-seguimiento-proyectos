@@ -4,6 +4,11 @@
 # Con el stack en Docker también funciona vía frontend: ./scripts/smoke-test.sh http://localhost:4200
 # Guarda la salida como evidencia:  ./scripts/smoke-test.sh | tee docs/evidencia-smoke.txt
 set -u
+cd "$(dirname "$0")/.."
+# P07: las credenciales salen de .env (generado con scripts/generar-env.sh) o de variables de entorno.
+[ -f .env ] && { set -a; . ./.env; set +a; }
+LIDER_USER="${APP_LIDER_USUARIO:-lider}"; LIDER_PASS="${APP_LIDER_PASSWORD:-}"
+[ -n "$LIDER_PASS" ] || { echo "Falta APP_LIDER_PASSWORD (define .env con ./scripts/generar-env.sh)"; exit 2; }
 BASE="${1:-http://localhost:8080}"
 OK=0; FAIL=0
 SUFIJO="$(date +%s)"
@@ -12,6 +17,7 @@ SUFIJO="$(date +%s)"
 check() {
   local desc="$1" esperado="$2" metodo="$3" ruta="$4" cuerpo="${5:-}"
   local args=(-s -o /tmp/smoke_body -w '%{http_code}' -X "$metodo" "$BASE$ruta")
+  [ "$ruta" != "/api/health" ] && args+=(-u "$LIDER_USER:$LIDER_PASS")   # P07: API protegida (rol LIDER)
   [ -n "$cuerpo" ] && args+=(-H 'Content-Type: application/json' -d "$cuerpo")
   local real; real="$(curl "${args[@]}")"
   if [ "$real" = "$esperado" ]; then OK=$((OK+1)); printf 'PASS  %-62s HTTP %s\n' "$desc" "$real"
@@ -43,7 +49,7 @@ check "Filtro de estado desconocido"            400 GET   "/api/proyectos?estado
 check "Estado desconocido en PATCH"             400 PATCH "/api/proyectos/$ID/estado" '{"estado":"TERMINADO"}'
 check "Transición inválida (ENTREGADO es final)" 409 PATCH "/api/proyectos/$ID/estado" '{"estado":"EN_PROGRESO"}'
 check "PATCH sobre proyecto inexistente"        404 PATCH /api/proyectos/999999/estado '{"estado":"EN_PROGRESO"}'
-check "Método no permitido (DELETE)"            405 DELETE /api/proyectos/1
+check "Método no declarado se deniega (DELETE)"  403 DELETE /api/proyectos/1
 
 echo "== Resultado: $OK correctas, $FAIL fallidas =="
 [ "$FAIL" -eq 0 ]
