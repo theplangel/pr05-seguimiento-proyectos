@@ -90,6 +90,15 @@ else
   for h in "X-Content-Type-Options: nosniff" "X-Frame-Options: DENY" "Content-Security-Policy:" "Referrer-Policy:"; do
     echo "$CAB" | grep -qi "^$h"; resultado "[E2E-01] Frontend envía la cabecera '$h'" $?
   done
+  # DEF-12: los location con su propio add_header (Cache-Control) perdían las cabeceras del bloque server.
+  JS="$(curl -s -m 5 "$FRONT/" | grep -oE 'main-[A-Za-z0-9]+\.js' | head -1)"
+  if [ -z "$JS" ]; then resultado "[E2E-01] Estático JS con cabeceras de seguridad" 1 "no se encontró main-*.js en index.html"
+  else
+    CAB_JS="$(curl -sI -m 5 "$FRONT/$JS" 2>/dev/null || true)"
+    for h in "X-Content-Type-Options: nosniff" "Content-Security-Policy:"; do
+      echo "$CAB_JS" | grep -qi "^$h"; resultado "[E2E-01] Estático $JS envía la cabecera '$h'" $?
+    done
+  fi
   echo "$CAB" | grep -qi '^Server: .*[0-9]\.[0-9]'; [ $? -ne 0 ]; resultado "[E2E-01] El frontend no revela la versión del servidor" $?
   CODIGO="$(curl -s -o /dev/null -w '%{http_code}' -m 5 -X POST -H 'Content-Type: application/json' -H "X-API-Key: $KEY" -d "$LECTURA" "$FRONT/api/iot/lecturas")"
   resultado "[E2E-01] La ingesta IoT NO se expone por el puerto público (HTTP $CODIGO)" $([ "$CODIGO" = "403" ] && echo 0 || echo 1)
