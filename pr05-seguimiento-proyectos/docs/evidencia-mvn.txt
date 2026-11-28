@@ -1,0 +1,12 @@
+﻿[INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.146 s - in mx.uv.proyectos.EstadoTest
+[INFO] Tests run: 15, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.443 s - in mx.uv.proyectos.iot.IotControllerTest
+[INFO] Tests run: 17, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.332 s - in mx.uv.proyectos.iot.IotServiceTest
+[INFO] Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.001 s - in mx.uv.proyectos.iot.ReglasIotTest
+[INFO] Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.329 s - in mx.uv.proyectos.ProyectoControllerTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.067 s - in mx.uv.proyectos.ProyectoServiceTest
+[INFO] Tests run: 7, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.018 s - in mx.uv.proyectos.seguridad.LimitadorIntentosFilterTest
+[INFO] Tests run: 14, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.382 s - in mx.uv.proyectos.seguridad.SeguridadRolesTest
+[INFO] Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.061 s - in mx.uv.proyectos.seguridad.UsuarioDetallesServiceTest
+[INFO] Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.02 s - in mx.uv.proyectos.seguridad.UsuarioInicializadorTest
+[INFO] Tests run: 93, Failures: 0, Errors: 0, Skipped: 0
+[INFO] BUILD SUCCESS

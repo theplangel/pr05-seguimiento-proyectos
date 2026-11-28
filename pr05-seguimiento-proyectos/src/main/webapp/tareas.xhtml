@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+
+<h:head>
+    <title>PR05 - Tareas (Web 2.0 - JSF/PrimeFaces)</title>
+</h:head>
+
+<h:body>
+    <f:metadata>
+        <f:viewParam name="proyectoId" value="#{tareaBean.proyectoId}" />
+        <f:viewAction action="#{tareaBean.inicializar}" />
+    </f:metadata>
+
+    <h:form id="formTareas">
+
+        <h:link outcome="proyectos" value="&#8592; Volver a proyectos" style="display:block;margin-bottom:10px;" />
+
+        <p:growl id="mensajes" showDetail="true" />
+
+        <p:panel header="Nueva tarea (proyecto ##{tareaBean.proyectoId})">
+            <h:panelGrid columns="2" cellpadding="5">
+
+                <p:outputLabel for="titulo" value="Titulo *" />
+                <p:inputText id="titulo" value="#{tareaBean.titulo}" required="true"
+                             requiredMessage="El titulo es obligatorio." />
+
+                <p:outputLabel for="responsable" value="Responsable *" />
+                <p:selectOneMenu id="responsable" value="#{tareaBean.responsableId}" required="true">
+                    <f:selectItem itemLabel="-- selecciona --" itemValue="#{null}" />
+                    <f:selectItems value="#{tareaBean.integrantes}" var="i"
+                                   itemLabel="#{i.nombre} (#{i.rolEquipo})" itemValue="#{i.id}" />
+                </p:selectOneMenu>
+
+                <p:outputLabel for="fechaLimite" value="Fecha limite" />
+                <p:calendar id="fechaLimite" value="#{tareaBean.fechaLimite}" pattern="yyyy-MM-dd" />
+
+            </h:panelGrid>
+
+            <p:commandButton value="Crear tarea" action="#{tareaBean.crearTarea}"
+                              update="formTareas" process="@form" />
+        </p:panel>
+
+        <p:separator />
+
+        <p:panel header="Tareas del proyecto">
+            <p:dataTable id="tablaTareas" var="t" value="#{tareaBean.tareas}"
+                         emptyMessage="No hay tareas registradas todavia.">
+
+                <p:column headerText="ID">
+                    <h:outputText value="#{t.id}" />
+                </p:column>
+
+                <p:column headerText="Titulo">
+                    <h:outputText value="#{t.titulo}" />
+                </p:column>
+
+                <p:column headerText="Estado actual">
+                    <p:tag value="#{t.estado}" />
+                </p:column>
+
+                <p:column headerText="Cambiar a">
+                    <p:selectOneMenu value="#{t.estado}">
+                        <f:selectItems value="#{tareaBean.estadosDisponibles}" />
+                        <p:ajax listener="#{tareaBean.cambiarEstado(t, t.estado)}"
+                                update=":formTareas:tablaTareas :formTareas:mensajes" />
+                    </p:selectOneMenu>
+                </p:column>
+
+                <p:column headerText="Detalle">
+                    <p:commandButton value="Ver" icon="pi pi-eye"
+                                      actionListener="#{tareaBean.seleccionarTarea(t)}"
+                                      update=":formTareas:panelDetalle"
+                                      oncomplete="PF('dlgDetalle').show()" />
+                </p:column>
+
+            </p:dataTable>
+        </p:panel>
+
+        <p:dialog header="Detalle de tarea" widgetVar="dlgDetalle" modal="true" width="500">
+            <h:panelGroup id="panelDetalle">
+                <h:panelGroup rendered="#{tareaBean.tareaSeleccionada != null}">
+
+                    <h3>Impedimentos</h3>
+                    <p:dataTable var="imp" value="#{tareaBean.impedimentosDeTarea}"
+                                 emptyMessage="Sin impedimentos registrados.">
+                        <p:column headerText="Descripcion">
+                            <h:outputText value="#{imp.descripcion}" />
+                        </p:column>
+                        <p:column headerText="Estado">
+                            <p:tag value="#{imp.estado}" />
+                        </p:column>
+                        <p:column headerText="Accion">
+                            <p:commandButton value="Resolver" rendered="#{imp.estado == 'ABIERTO'}"
+                                              actionListener="#{tareaBean.resolverImpedimento(imp)}"
+                                              update=":formTareas:panelDetalle :formTareas:mensajes" />
+                        </p:column>
+                    </p:dataTable>
+
+                    <p:outputLabel for="descImpedimento" value="Nuevo impedimento" />
+                    <p:inputText id="descImpedimento" value="#{tareaBean.descripcionImpedimento}" style="width:100%" />
+                    <p:commandButton value="Registrar impedimento" action="#{tareaBean.crearImpedimento}"
+                                      update=":formTareas:panelDetalle :formTareas:mensajes" />
+
+                    <p:separator />
+
+                    <h3>Registrar evidencia</h3>
+                    <p:outputLabel for="tipoEv" value="Tipo" />
+                    <p:inputText id="tipoEv" value="#{tareaBean.tipoEvidencia}" />
+                    <p:outputLabel for="urlEv" value="URL / ruta" />
+                    <p:inputText id="urlEv" value="#{tareaBean.urlEvidencia}" style="width:100%" />
+                    <p:commandButton value="Registrar evidencia" action="#{tareaBean.registrarEvidencia}"
+                                      update=":formTareas:mensajes" />
+
+                </h:panelGroup>
+            </h:panelGroup>
+        </p:dialog>
+
+    </h:form>
+</h:body>
+</html>

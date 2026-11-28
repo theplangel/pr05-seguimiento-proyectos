@@ -1,0 +1,44 @@
+== Smoke test contra http://localhost:8080  (2026-11-28T00:53:19Z) ==
+--- Positivas
+PASS  Salud                                                          HTTP 200
+        {"status":"UP","servicio":"proyectos-api","timestamp":"2026-11-28T00:53:19.940623Z"}
+PASS  Listar proyectos (datos de prueba)                             HTTP 200
+        [{"id":1,"titulo":"Sistema de tutorías entre pares","descripcion":"Plataforma para registrar y dar seguimiento a tutorías.","integrantes":"Ana Pérez; Luis Gómez; Marta Ruiz","asesor":"Dr. Adolfo Rodríguez Parada","estado":"EN_PROGRESO","estadosPermitidos":["EN_REVISION"],"fechaCreacion":"2026-11-28T00:16:43.875974","fechaActualizacion":"2026-11-28T00:16:43.875974"},{"id":2,"titulo":"C
+PASS  Filtrar por estado=ENTREGADO                                   HTTP 200
+        [{"id":4,"titulo":"Clasificador Iris con KNN","descripcion":"Clasificador de flores Iris con hoja de cálculo y script.","integrantes":"Luis Gómez","asesor":"Dra. Patricia Mora","estado":"ENTREGADO","estadosPermitidos":[],"fechaCreacion":"2026-11-28T00:16:43.875974","fechaActualizacion":"2026-11-28T00:16:43.875974"}]
+PASS  Consultar proyecto id=1                                        HTTP 200
+        {"id":1,"titulo":"Sistema de tutorías entre pares","descripcion":"Plataforma para registrar y dar seguimiento a tutorías.","integrantes":"Ana Pérez; Luis Gómez; Marta Ruiz","asesor":"Dr. Adolfo Rodríguez Parada","estado":"EN_PROGRESO","estadosPermitidos":["EN_REVISION"],"fechaCreacion":"2026-11-28T00:16:43.875974","fechaActualizacion":"2026-11-28T00:16:43.875974"}
+PASS  Crear proyecto (queda REGISTRADO)                              HTTP 201
+        {"id":7,"titulo":"Smoke 1795827199","descripcion":"Prueba E2E","integrantes":"Equipo","asesor":"Dr. X","estado":"REGISTRADO","estadosPermitidos":["EN_PROGRESO"],"fechaCreacion":"2026-11-28T00:53:21.709264","fechaActualizacion":"2026-11-28T00:53:21.709272"}
+PASS  REGISTRADO -> EN_PROGRESO                                      HTTP 200
+        {"id":7,"titulo":"Smoke 1795827199","descripcion":"Prueba E2E","integrantes":"Equipo","asesor":"Dr. X","estado":"EN_PROGRESO","estadosPermitidos":["EN_REVISION"],"fechaCreacion":"2026-11-28T00:53:21.709264","fechaActualizacion":"2026-11-28T00:53:22.204009"}
+PASS  EN_PROGRESO -> EN_REVISION                                     HTTP 200
+        {"id":7,"titulo":"Smoke 1795827199","descripcion":"Prueba E2E","integrantes":"Equipo","asesor":"Dr. X","estado":"EN_REVISION","estadosPermitidos":["EN_PROGRESO","ENTREGADO"],"fechaCreacion":"2026-11-28T00:53:21.709264","fechaActualizacion":"2026-11-28T00:53:22.625753"}
+PASS  EN_REVISION -> ENTREGADO                                       HTTP 200
+        {"id":7,"titulo":"Smoke 1795827199","descripcion":"Prueba E2E","integrantes":"Equipo","asesor":"Dr. X","estado":"ENTREGADO","estadosPermitidos":[],"fechaCreacion":"2026-11-28T00:53:21.709264","fechaActualizacion":"2026-11-28T00:53:23.025259"}
+PASS  Persistencia: el proyecto sigue ENTREGADO                      HTTP 200
+        {"id":7,"titulo":"Smoke 1795827199","descripcion":"Prueba E2E","integrantes":"Equipo","asesor":"Dr. X","estado":"ENTREGADO","estadosPermitidos":[],"fechaCreacion":"2026-11-28T00:53:21.709264","fechaActualizacion":"2026-11-28T00:53:23.025259"}
+--- Negativas
+PASS  Crear con campos vacíos                                       HTTP 400
+        {"timestamp":"2026-11-28T00:53:23.875464Z","status":400,"error":"Bad Request","mensaje":"Datos de entrada inválidos","ruta":"/api/proyectos","campos":{"titulo":"El título es obligatorio","descripcion":"La descripción es obligatoria"}}
+PASS  Crear con JSON mal formado                                     HTTP 400
+        {"timestamp":"2026-11-28T00:53:24.291142Z","status":400,"error":"Bad Request","mensaje":"Cuerpo JSON ausente, mal formado o con valores/campos no reconocidos. Estados válidos: REGISTRADO, EN_PROGRESO, EN_REVISION, ENTREGADO","ruta":"/api/proyectos","campos":null}
+PASS  Crear con campo desconocido                                    HTTP 400
+        {"timestamp":"2026-11-28T00:53:24.716357Z","status":400,"error":"Bad Request","mensaje":"Cuerpo JSON ausente, mal formado o con valores/campos no reconocidos. Estados válidos: REGISTRADO, EN_PROGRESO, EN_REVISION, ENTREGADO","ruta":"/api/proyectos","campos":null}
+PASS  Crear con título duplicado                                    HTTP 409
+        {"timestamp":"2026-11-28T00:53:25.139933Z","status":409,"error":"Conflict","mensaje":"Ya existe un proyecto con el título 'Smoke 1795827199'","ruta":"/api/proyectos","campos":null}
+PASS  Consultar id inexistente                                       HTTP 404
+        {"timestamp":"2026-11-28T00:53:25.552677Z","status":404,"error":"Not Found","mensaje":"No existe el proyecto con id 999999","ruta":"/api/proyectos/999999","campos":null}
+PASS  Id no numérico                                                HTTP 400
+        {"timestamp":"2026-11-28T00:53:25.968048Z","status":400,"error":"Bad Request","mensaje":"Valor inválido para el parámetro 'id'","ruta":"/api/proyectos/abc","campos":null}
+PASS  Filtro de estado desconocido                                   HTTP 400
+        {"timestamp":"2026-11-28T00:53:26.378058Z","status":400,"error":"Bad Request","mensaje":"Valor inválido para el parámetro 'estado'","ruta":"/api/proyectos","campos":null}
+PASS  Estado desconocido en PATCH                                    HTTP 400
+        {"timestamp":"2026-11-28T00:53:26.783410Z","status":400,"error":"Bad Request","mensaje":"Cuerpo JSON ausente, mal formado o con valores/campos no reconocidos. Estados válidos: REGISTRADO, EN_PROGRESO, EN_REVISION, ENTREGADO","ruta":"/api/proyectos/7/estado","campos":null}
+PASS  Transición inválida (ENTREGADO es final)                     HTTP 409
+        {"timestamp":"2026-11-28T00:53:27.205053Z","status":409,"error":"Conflict","mensaje":"Transición no permitida: ENTREGADO -> EN_PROGRESO. Permitidas: []","ruta":"/api/proyectos/7/estado","campos":null}
+PASS  PATCH sobre proyecto inexistente                               HTTP 404
+        {"timestamp":"2026-11-28T00:53:27.621199Z","status":404,"error":"Not Found","mensaje":"No existe el proyecto con id 999999","ruta":"/api/proyectos/999999/estado","campos":null}
+PASS  Método no declarado se deniega (DELETE)                       HTTP 403
+        {"status":403,"error":"Forbidden","mensaje":"No tiene permiso para esta operación","ruta":"/api/proyectos/1"}
+== Resultado: 20 correctas, 0 fallidas ==

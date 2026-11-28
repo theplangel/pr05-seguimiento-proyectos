@@ -1,0 +1,26 @@
+== Auditoría de seguridad (2026-11-28T00:55:57Z) ==
+--- Secretos
+PASS  .env NO está versionado
+PASS  .env está en .gitignore
+PASS  .env.example no contiene valores secretos
+PASS  Sin contraseñas por defecto ni credenciales conocidas en archivos del repositorio
+PASS  Sin literales de contraseña o clave en el código de producción
+FAIL  El historial de Git no contiene la contraseña antigua de P02 (si falla: rotarla) 402320f Agent host session 9a1a9a6c-3d35-4db2-b791-ff7baf8c0bf5 - turn 2
+db8f566 Add P07 security and deployment package
+7a615e9 Agent host session 9a1a9a6c-3d35-4db2-b791-ff7baf8c0bf5 - baseline checkpoint
+--- Configuración
+PASS  Hibernate solo valida el esquema (no lo modifica)
+PASS  Sin trazas en las respuestas de error
+PASS  Swagger desactivado por defecto
+PASS  docker-compose no publica el puerto de PostgreSQL
+PASS  El backend solo escucha en 127.0.0.1
+PASS  docker-compose exige DB_PASSWORD (sin valor por defecto)
+PASS  Nginx envía Content-Security-Policy
+PASS  El contenedor del backend corre sin root
+--- Dependencias
+PASS  npm audit (producción): sin vulnerabilidades CRÍTICAS
+AVISO npm audit: 8 vulnerabilities (4 moderate, 4 high)
+        Hallazgos altos/moderados de Angular 18: sin parche en la rama 18 (requiere salto de versión mayor).
+        Tratados como RIESGO ACEPTADO documentado: ver DEF-07 en docs/defectos-p07.md
+        Java: mvn -q org.owasp:dependency-check-maven:check   (opcional; requiere descargar la base NVD)
+== Resultado: 14 correctas, 1 fallidas ==
