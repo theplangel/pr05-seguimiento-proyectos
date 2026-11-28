@@ -80,29 +80,46 @@ Todos los errores usan el mismo cuerpo:
 
 ```bash
 cd proyectos-backend  && mvn test        # JUnit 5: MockMvc (positivas/negativas), servicio y reglas de estado
-cd proyectos-frontend && npm test        # Jest: servicio HTTP y flujo de usuario del componente
+cd proyectos-frontend && npm test        # Jest (31 pruebas): servicio HTTP, lista, formulario, detalle y estados de carga/error
 ./scripts/smoke-test.sh                  # extremo a extremo contra el stack levantado (19 verificaciones)
 ```
 
 `smoke-test.sh` recorre el ciclo completo (crear → 3 cambios de estado → releer) y los casos inválidos, y termina con código ≠ 0 si algo falla.
 Guardar evidencia: `./scripts/smoke-test.sh | tee docs/evidencia-smoke.txt`.
 
-## 7. Recorrido manual del flujo extremo a extremo
+## 7. Frontend Angular
 
-1. Abrir http://localhost:4200: el indicador superior debe decir **API: activa** y verse la lista de 4 proyectos.
+| Ruta (navegador) | Componente | Consume |
+|---|---|---|
+| `/proyectos` | `ProyectosComponent` (lista + filtro + botones de estado) y `ProyectoFormComponent` (alta) | `GET /api/proyectos[?estado=]`, `POST /api/proyectos`, `PATCH /api/proyectos/{id}/estado` |
+| `/proyectos/:id` | `ProyectoDetalleComponent` (ficha, ciclo de estados, cambio de estado) | `GET /api/proyectos/{id}`, `PATCH /api/proyectos/{id}/estado` |
+| cabecera | `AppComponent` (indicador de salud con reintento) | `GET /api/health` |
+
+- **Servicio HTTP tipado:** `core/proyectos.service.ts` + `core/models.ts` reflejan el contrato OpenAPI; `normalizar()` convierte cualquier fallo (400/404/409/sin conexión) en un `ApiError` con el `mensaje` y los `campos` que manda la API.
+- **Errores del API en la UI:** banner con el `mensaje`, errores por campo debajo de cada input (se limpian al corregir), 404 en el detalle, pantalla "sin conexión" con botón **Reintentar**.
+- **Estados de carga:** filas esqueleto en la lista, spinner en el detalle, botón "Guardando…" y formulario bloqueado durante el POST, fila "Actualizando…" con acciones bloqueadas durante el PATCH (evita dobles envíos).
+- **Proxy de desarrollo:** `proxy.conf.json` redirige `/api` de `ng serve` (:4200) a `localhost:8080`; el código usa siempre la base relativa `/api`, así que no hay URLs de backend en el frontend ni se necesita CORS.
+- **Docker + Nginx:** `Dockerfile` multi-etapa (Node 20: `npm ci` → Jest → `ng build`; Nginx 1.27: estáticos). Si una prueba falla la imagen no se construye. `nginx.conf` hace proxy `/api/` → `backend:8080`, fallback a `index.html` para las rutas del router, gzip, caché larga para los JS/CSS con hash y `no-cache` para `index.html`.
+
+## 8. Recorrido manual del flujo extremo a extremo
+
+1. Abrir http://localhost:4200: el indicador superior debe decir **API: activa** y verse la lista de 4 proyectos (antes aparecen filas esqueleto).
 2. Enviar el formulario vacío → errores en rojo, sin petición a la API.
-3. Registrar un proyecto válido → banner verde y aparece en la tabla en estado `REGISTRADO`.
-4. Repetir el mismo título → banner rojo con el 409 de la API.
-5. Pulsar `→ EN_PROGRESO`, luego `→ EN_REVISION`, luego `→ ENTREGADO`; en `ENTREGADO` ya no hay acciones.
-6. Filtrar por estado y recargar la página: los datos persisten (PostgreSQL).
-7. Verificar en BD: `docker compose exec db psql -U proyectos -c "select id,titulo,estado from proyectos order by id;"`
+3. Registrar un proyecto válido → "Guardando…", banner verde con enlace **Ver detalle** y aparece en la tabla en estado `REGISTRADO`.
+4. Repetir el mismo título → banner rojo en el formulario con el 409 de la API (lo capturado no se pierde).
+5. Pulsar `→ EN PROGRESO`, luego `→ EN REVISION`, luego `→ ENTREGADO`; en `ENTREGADO` ya no hay acciones.
+6. Pulsar el título de un proyecto → `/proyectos/{id}`: ficha completa, fechas y ciclo de estados; cambiar el estado desde ahí.
+7. Abrir http://localhost:4200/proyectos/999 → "Proyecto no encontrado" (404 de la API). Abrir `/proyectos/abc` → id inválido, sin llamar a la API.
+8. Detener el backend (`docker compose stop backend`) y recargar → "API: sin conexión" y la lista ofrece **Reintentar**; `docker compose start backend` y reintentar.
+9. Filtrar por estado y recargar la página: los datos persisten (PostgreSQL).
+10. Verificar en BD: `docker compose exec db psql -U proyectos -c "select id,titulo,estado from proyectos order by id;"`
 
-## 8. Trazabilidad con la rúbrica R05
+## 9. Trazabilidad con la rúbrica R05
 
 | Criterio | Pts | Dónde verificarlo |
 |---|---|---|
 | API Spring funcional | 3 | §5, Swagger UI, `ProyectoControllerTest`, `smoke-test.sh` |
-| Integración Angular | 3 | `proyectos-frontend/src/app` (servicio + componente), §7, specs Jest |
+| Integración Angular | 3 | §7–§8, `proyectos-frontend/src/app` (servicio, lista, formulario, detalle), 31 specs Jest, `docs/evidencia-frontend.txt` |
 | Persistencia PostgreSQL | 2 | `db/migration/V1,V2`, volumen `pgdata`, paso 7 del §7 |
 | Errores y validación | 2 | `ApiExceptionHandler`, `ProyectoRequest`, casos negativos de tests y smoke |
 | Pruebas y repositorio | 2 | §6, `docs/EVIDENCIA.md`, historial de commits |

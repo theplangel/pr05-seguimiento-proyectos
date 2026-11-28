@@ -49,3 +49,18 @@ El entorno donde se escribió el backend no tiene acceso a Maven Central ni a Do
 | Historial PostgreSQL (2) | `V3__iot.sql` (`lectura_iot` + índice temporal) · `GET /api/iot/lecturas?desde=&hasta=` |
 | Eventos / lectura periódica (2) | Ingesta REST + polling de 5 s · decisiones D2–D4 en `docs/decisiones-p06.md` |
 | Análisis y alertas (2) | `ReglasIot`, `alerta_iot`, banners y tabla de alertas · §5–§7 de `docs/arquitectura-p06.md` |
+
+## E. Ejecución realizada el 2026-11-19
+
+| Comprobación | Resultado |
+|---|---|
+| `npx jest --ci` | VERIFICADO: 7 suites y 53 pruebas aprobadas |
+| `mvn test` | VERIFICADO: 65 pruebas aprobadas, `BUILD SUCCESS` |
+| Angular en desarrollo | VERIFICADO: ruta `/iot` disponible como `http://localhost:4200/#iot` y navegación hash |
+| Dashboard móvil | VERIFICADO visualmente: viewport 390×844; tarjetas, banners y tablas adaptables |
+| Estados UI normal, advertencia, crítico, anomalía y desconexión | VERIFICADO con datos controlados interceptados por navegador; capturas en `docs/captura-1-normal.png`, `captura-2-critico.png`, `captura-3-anomalia.png` y `captura-4-desconexion.png` |
+| Docker Compose / PostgreSQL extremo a extremo | NO_VERIFICADO en esta máquina: Docker Desktop no tiene daemon activo ni instalación ejecutable disponible |
+
+Captura móvil adicional: `docs/captura-4-desconexion-mobile.png`.
+
+La captura con datos controlados demuestra el render y los estados de la UI; no sustituye ni declara persistencia real. La persistencia PostgreSQL se conserva en `V3__iot.sql`, `lectura_iot` y `alerta_iot`, y debe ejecutarse con `docker compose up --build` cuando Docker esté disponible.
